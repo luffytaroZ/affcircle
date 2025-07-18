@@ -15,7 +15,7 @@ export interface ThemeProps {
   duration: number;
 }
 
-export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images, duration }) => {
+export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], duration }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   

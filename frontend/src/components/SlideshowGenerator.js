@@ -41,6 +41,51 @@ const SlideshowGenerator = ({ onClose }) => {
       description: 'Narrative-focused layout with emotional appeal',
       preview: '📖'
     },
+    { 
+      id: 'modern', 
+      name: 'Modern', 
+      color: 'from-teal-500 to-teal-600',
+      gradient: 'from-teal-500/20 to-teal-600/20',
+      border: 'border-teal-500/30',
+      description: 'Contemporary design with bold visuals and clean lines',
+      preview: '✨'
+    },
+    { 
+      id: 'creative', 
+      name: 'Creative', 
+      color: 'from-pink-500 to-pink-600',
+      gradient: 'from-pink-500/20 to-pink-600/20',
+      border: 'border-pink-500/30',
+      description: 'Artistic and vibrant with unique visual elements',
+      preview: '🎭'
+    },
+    { 
+      id: 'professional', 
+      name: 'Professional', 
+      color: 'from-indigo-500 to-indigo-600',
+      gradient: 'from-indigo-500/20 to-indigo-600/20',
+      border: 'border-indigo-500/30',
+      description: 'Sophisticated and refined for executive presentations',
+      preview: '🏆'
+    },
+    { 
+      id: 'elegant', 
+      name: 'Elegant', 
+      color: 'from-rose-500 to-rose-600',
+      gradient: 'from-rose-500/20 to-rose-600/20',
+      border: 'border-rose-500/30',
+      description: 'Luxurious and refined with subtle animations',
+      preview: '💎'
+    },
+    { 
+      id: 'cinematic', 
+      name: 'Cinematic', 
+      color: 'from-amber-500 to-amber-600',
+      gradient: 'from-amber-500/20 to-amber-600/20',
+      border: 'border-amber-500/30',
+      description: 'Movie-like experience with dramatic transitions',
+      preview: '🎬'
+    },
   ]
 
   const durations = [

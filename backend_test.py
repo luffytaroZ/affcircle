@@ -66,11 +66,11 @@ def test_slideshow_endpoints():
         print(f"   ❌ Error testing /api/health: {e}")
         health_working = False
     
-    # Test POST /api/generate-slideshow
-    print("   Testing POST /api/generate-slideshow...")
+    # Test POST /api/generate-slideshow with SPECIFIC TEST DATA from review request
+    print("   Testing POST /api/generate-slideshow with SPECIFIC TEST DATA...")
     test_data = {
-        "title": "Backend Test Slideshow",
-        "text": "This is a comprehensive backend test slideshow with proper data",
+        "title": "TEST CONTENT VISIBILITY",
+        "text": "This text should be clearly visible in the video output",
         "images": [],
         "theme": "minimal",
         "duration": 15
@@ -83,6 +83,7 @@ def test_slideshow_endpoints():
             data = response.json()
             video_id = data.get('videoId')
             print(f"   ✅ POST /api/generate-slideshow working: {data}")
+            print(f"   📹 Video ID for content visibility test: {video_id}")
             generate_working = True
         else:
             print(f"   ❌ POST /api/generate-slideshow failed with status {response.status_code}: {response.text}")

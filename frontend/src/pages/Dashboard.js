@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import SlideshowGenerator from '../components/SlideshowGenerator'
 import UserProfile from '../components/UserProfile'
 import VideoAnalytics from '../components/VideoAnalytics'
+import VideoEditor from '../components/VideoEditor'
 
 const Dashboard = () => {
   const { user, signOut } = useAuth()

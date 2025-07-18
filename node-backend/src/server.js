@@ -7,6 +7,8 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { renderMedia } = require('@remotion/renderer');
 const { bundle } = require('@remotion/bundler');
+const { spawn } = require('child_process');
+const util = require('util');
 require('dotenv').config();
 
 const app = express();

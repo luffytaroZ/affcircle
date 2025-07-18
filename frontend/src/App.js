@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Dashboard from "./pages/Dashboard";
 import {
   Navigation,
   Hero,
@@ -11,13 +14,20 @@ import {
 
 function App() {
   return (
-    <div className="App bg-black text-white min-h-screen">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <AuthProvider>
+      <div className="App bg-black text-white min-h-screen">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </div>
+    </AuthProvider>
   );
 }
 

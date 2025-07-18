@@ -263,6 +263,227 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ============================================================================
+// THREAD MAKER API ENDPOINTS
+// ============================================================================
+
+// Helper function to call Python LLM service
+async function callLLMService(command, ...args) {
+  return new Promise((resolve, reject) => {
+    const pythonProcess = spawn('python3', [
+      path.join(__dirname, '../llm_service.py'),
+      command,
+      ...args
+    ]);
+
+    let output = '';
+    let errorOutput = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Python service failed: ${errorOutput}`));
+        return;
+      }
+
+      try {
+        const result = JSON.parse(output);
+        resolve(result);
+      } catch (error) {
+        reject(new Error(`Failed to parse LLM service response: ${error.message}`));
+      }
+    });
+  });
+}
+
+// Generate Thread endpoint
+app.post('/api/generate-thread', async (req, res) => {
+  try {
+    const { topic, style = 'engaging', thread_length = 5, platform = 'twitter' } = req.body;
+
+    // Validation
+    if (!topic) {
+      return res.status(400).json({ error: 'Topic is required' });
+    }
+
+    if (thread_length < 1 || thread_length > 20) {
+      return res.status(400).json({ error: 'Thread length must be between 1 and 20' });
+    }
+
+    if (!['engaging', 'educational', 'storytelling', 'professional', 'viral'].includes(style)) {
+      return res.status(400).json({ error: 'Invalid style. Choose from: engaging, educational, storytelling, professional, viral' });
+    }
+
+    if (!['twitter', 'linkedin', 'instagram'].includes(platform)) {
+      return res.status(400).json({ error: 'Invalid platform. Choose from: twitter, linkedin, instagram' });
+    }
+
+    // Get API key from environment
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'OpenAI API key not configured' });
+    }
+
+    // Generate thread ID
+    const threadId = uuidv4();
+
+    // Create thread record in database
+    await db.collection('threads').insertOne({
+      id: threadId,
+      topic,
+      style,
+      thread_length,
+      platform,
+      status: 'generating',
+      createdAt: new Date()
+    });
+
+    // Generate thread in background
+    generateThreadAsync(threadId, apiKey, topic, style, thread_length, platform);
+
+    res.json({
+      success: true,
+      thread_id: threadId,
+      status: 'generating',
+      message: 'Thread generation started'
+    });
+
+  } catch (error) {
+    console.error('Error generating thread:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get Thread Status endpoint
+app.get('/api/thread-status/:threadId', async (req, res) => {
+  try {
+    const { threadId } = req.params;
+
+    const thread = await db.collection('threads').findOne({ id: threadId });
+    
+    if (!thread) {
+      return res.status(404).json({ error: 'Thread not found' });
+    }
+
+    res.json(thread);
+
+  } catch (error) {
+    console.error('Error fetching thread status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get All Threads endpoint
+app.get('/api/threads', async (req, res) => {
+  try {
+    const threads = await db.collection('threads')
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .toArray();
+
+    res.json({ threads });
+
+  } catch (error) {
+    console.error('Error fetching threads:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete Thread endpoint
+app.delete('/api/thread/:threadId', async (req, res) => {
+  try {
+    const { threadId } = req.params;
+
+    const result = await db.collection('threads').deleteOne({ id: threadId });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Thread not found' });
+    }
+
+    res.json({ success: true, message: 'Thread deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting thread:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Background thread generation
+async function generateThreadAsync(threadId, apiKey, topic, style, threadLength, platform) {
+  try {
+    console.log(`Generating thread ${threadId}...`);
+
+    // Call Python LLM service
+    const result = await callLLMService(
+      'generate_thread',
+      apiKey,
+      topic,
+      style,
+      threadLength.toString(),
+      platform
+    );
+
+    if (result.success) {
+      // Update database with generated thread
+      await db.collection('threads').updateOne(
+        { id: threadId },
+        {
+          $set: {
+            status: 'completed',
+            tweets: result.tweets,
+            generated_at: result.generated_at,
+            session_id: result.session_id,
+            completedAt: new Date()
+          }
+        }
+      );
+
+      console.log(`Thread generation completed for ID: ${threadId}`);
+    } else {
+      // Update database with error
+      await db.collection('threads').updateOne(
+        { id: threadId },
+        {
+          $set: {
+            status: 'failed',
+            error: result.error,
+            failedAt: new Date()
+          }
+        }
+      );
+
+      console.error(`Thread generation failed for ID: ${threadId}`, result.error);
+    }
+
+  } catch (error) {
+    console.error(`Error generating thread ${threadId}:`, error);
+    
+    // Update database with error
+    await db.collection('threads').updateOne(
+      { id: threadId },
+      {
+        $set: {
+          status: 'failed',
+          error: error.message,
+          failedAt: new Date()
+        }
+      }
+    );
+  }
+}
+
+// ============================================================================
+// END THREAD MAKER API ENDPOINTS  
+// ============================================================================
+
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);

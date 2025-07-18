@@ -53,11 +53,11 @@ export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], d
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#ffffff' }}>
-      {/* Always show title for debugging */}
+      {/* Always visible title */}
       <div
         style={{
           position: 'absolute',
-          top: '50%',
+          top: '30%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
           fontSize: 72,
@@ -65,25 +65,25 @@ export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], d
           color: '#1a1a1a',
           textAlign: 'center',
           fontFamily: 'Arial, sans-serif',
-          opacity: titleOpacity,
+          opacity: 1, // Always visible
           zIndex: 10,
         }}
       >
         {title || 'NO TITLE PROVIDED'}
       </div>
       
-      {/* Always show text for debugging */}
+      {/* Always visible text */}
       <div
         style={{
           position: 'absolute',
-          top: '60%',
+          top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
           fontSize: 32,
           color: '#4a4a4a',
           textAlign: 'center',
           fontFamily: 'Arial, sans-serif',
-          opacity: contentOpacity,
+          opacity: 1, // Always visible
           zIndex: 10,
         }}
       >

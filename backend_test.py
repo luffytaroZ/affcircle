@@ -160,9 +160,204 @@ def test_slideshow_endpoints():
     return health_working, generate_working, videos_working, status_working
 
 
+def test_thread_maker_endpoints():
+    """Test Thread Maker API endpoints"""
+    print("\n3. Testing Thread Maker API Endpoints...")
+    
+    # Test GET /api/threads (should return empty list initially)
+    print("   Testing GET /api/threads...")
+    try:
+        response = requests.get(f"{API_BASE}/threads", timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            print(f"   ✅ GET /api/threads working: Found {len(data.get('threads', []))} threads")
+            threads_list_working = True
+        else:
+            print(f"   ❌ GET /api/threads failed with status {response.status_code}: {response.text}")
+            threads_list_working = False
+    except Exception as e:
+        print(f"   ❌ Error testing /api/threads: {e}")
+        threads_list_working = False
+    
+    # Test POST /api/generate-thread with review request data
+    print("   Testing POST /api/generate-thread with review request data...")
+    thread_data = {
+        "topic": "Benefits of AI in content creation",
+        "style": "engaging",
+        "thread_length": 5,
+        "platform": "twitter"
+    }
+    thread_id = None
+    try:
+        response = requests.post(f"{API_BASE}/generate-thread", 
+                               json=thread_data, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            thread_id = data.get('thread_id')
+            print(f"   ✅ POST /api/generate-thread working: {data}")
+            print(f"   🧵 Thread ID: {thread_id}")
+            generate_thread_working = True
+        else:
+            print(f"   ❌ POST /api/generate-thread failed with status {response.status_code}: {response.text}")
+            generate_thread_working = False
+    except Exception as e:
+        print(f"   ❌ Error testing /api/generate-thread: {e}")
+        generate_thread_working = False
+    
+    # Test GET /api/thread-status/{threadId}
+    print("   Testing GET /api/thread-status/{threadId}...")
+    thread_status_working = False
+    try:
+        if thread_id:
+            response = requests.get(f"{API_BASE}/thread-status/{thread_id}", timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                print(f"   ✅ GET /api/thread-status working: Status={data.get('status')}, Topic='{data.get('topic')}'")
+                thread_status_working = True
+                
+                # Note about OpenAI API key requirement
+                if data.get('status') == 'failed' and 'OpenAI' in str(data.get('error', '')):
+                    print("   ⚠️  Thread generation failed due to OpenAI API key requirement (expected)")
+                elif data.get('status') == 'generating':
+                    print("   ⏳ Thread is still generating (OpenAI API key may be placeholder)")
+                elif data.get('status') == 'completed':
+                    print("   🎉 Thread generation completed successfully!")
+                    if 'tweets' in data:
+                        print(f"   📝 Generated {len(data['tweets'])} tweets")
+            else:
+                print(f"   ❌ GET /api/thread-status failed with status {response.status_code}: {response.text}")
+        else:
+            print("   ⚠️  No thread ID available to test thread-status endpoint")
+    except Exception as e:
+        print(f"   ❌ Error testing /api/thread-status: {e}")
+    
+    # Test DELETE /api/thread/{threadId}
+    print("   Testing DELETE /api/thread/{threadId}...")
+    delete_thread_working = False
+    try:
+        if thread_id:
+            response = requests.delete(f"{API_BASE}/thread/{thread_id}", timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                print(f"   ✅ DELETE /api/thread working: {data}")
+                delete_thread_working = True
+            else:
+                print(f"   ❌ DELETE /api/thread failed with status {response.status_code}: {response.text}")
+        else:
+            print("   ⚠️  No thread ID available to test delete endpoint")
+    except Exception as e:
+        print(f"   ❌ Error testing DELETE /api/thread: {e}")
+    
+    return threads_list_working, generate_thread_working, thread_status_working, delete_thread_working
+
+def test_thread_maker_validation():
+    """Test Thread Maker API validation"""
+    print("\n4. Testing Thread Maker API Validation...")
+    
+    # Test POST /api/generate-thread with missing topic
+    print("   Testing POST /api/generate-thread with missing topic...")
+    try:
+        invalid_data = {
+            "style": "engaging",
+            "thread_length": 5,
+            "platform": "twitter"
+        }
+        response = requests.post(f"{API_BASE}/generate-thread", 
+                               json=invalid_data, timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation error handling for missing topic")
+        else:
+            print("   ⚠️  Unexpected response for missing topic")
+    except Exception as e:
+        print(f"   ❌ Error testing missing topic: {e}")
+    
+    # Test POST /api/generate-thread with invalid style
+    print("   Testing POST /api/generate-thread with invalid style...")
+    try:
+        invalid_data = {
+            "topic": "Test topic",
+            "style": "invalid_style",
+            "thread_length": 5,
+            "platform": "twitter"
+        }
+        response = requests.post(f"{API_BASE}/generate-thread", 
+                               json=invalid_data, timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation error handling for invalid style")
+        else:
+            print("   ⚠️  Unexpected response for invalid style")
+    except Exception as e:
+        print(f"   ❌ Error testing invalid style: {e}")
+    
+    # Test POST /api/generate-thread with invalid thread_length
+    print("   Testing POST /api/generate-thread with invalid thread_length...")
+    try:
+        invalid_data = {
+            "topic": "Test topic",
+            "style": "engaging",
+            "thread_length": 25,  # Invalid (> 20)
+            "platform": "twitter"
+        }
+        response = requests.post(f"{API_BASE}/generate-thread", 
+                               json=invalid_data, timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation error handling for invalid thread_length")
+        else:
+            print("   ⚠️  Unexpected response for invalid thread_length")
+    except Exception as e:
+        print(f"   ❌ Error testing invalid thread_length: {e}")
+    
+    # Test POST /api/generate-thread with invalid platform
+    print("   Testing POST /api/generate-thread with invalid platform...")
+    try:
+        invalid_data = {
+            "topic": "Test topic",
+            "style": "engaging",
+            "thread_length": 5,
+            "platform": "invalid_platform"
+        }
+        response = requests.post(f"{API_BASE}/generate-thread", 
+                               json=invalid_data, timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation error handling for invalid platform")
+        else:
+            print("   ⚠️  Unexpected response for invalid platform")
+    except Exception as e:
+        print(f"   ❌ Error testing invalid platform: {e}")
+    
+    # Test GET /api/thread-status with non-existent thread ID
+    print("   Testing GET /api/thread-status with non-existent ID...")
+    try:
+        fake_id = "non-existent-thread-id-12345"
+        response = requests.get(f"{API_BASE}/thread-status/{fake_id}", timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 404:
+            print("   ✅ Proper 404 handling for non-existent thread")
+        else:
+            print("   ⚠️  Unexpected response for non-existent thread")
+    except Exception as e:
+        print(f"   ❌ Error testing non-existent thread: {e}")
+    
+    # Test DELETE /api/thread with non-existent thread ID
+    print("   Testing DELETE /api/thread with non-existent ID...")
+    try:
+        fake_id = "non-existent-thread-id-12345"
+        response = requests.delete(f"{API_BASE}/thread/{fake_id}", timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 404:
+            print("   ✅ Proper 404 handling for non-existent thread deletion")
+        else:
+            print("   ⚠️  Unexpected response for non-existent thread deletion")
+    except Exception as e:
+        print(f"   ❌ Error testing non-existent thread deletion: {e}")
+
 def test_error_handling():
     """Test error handling with invalid data"""
-    print("\n4. Testing Error Handling...")
+    print("\n5. Testing Slideshow Error Handling...")
     
     # Test POST /api/generate-slideshow with missing required fields
     print("   Testing POST /api/generate-slideshow with missing title...")

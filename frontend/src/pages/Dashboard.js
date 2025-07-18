@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import SlideshowGenerator from '../components/SlideshowGenerator'
+import UserProfile from '../components/UserProfile'
 
 const Dashboard = () => {
   const { user, signOut } = useAuth()

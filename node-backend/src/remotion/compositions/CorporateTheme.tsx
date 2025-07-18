@@ -19,9 +19,12 @@ export const CorporateTheme: React.FC<ThemeProps> = ({ title, text, images = [],
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   
-  // Calculate durations
+  // Ensure duration is a valid number with fallback
+  const safeDuration = typeof duration === 'number' && isFinite(duration) && duration > 0 ? duration : 15;
+  
+  // Calculate durations with safety checks
   const titleDuration = Math.floor(fps * 2); // 2 seconds
-  const contentDuration = Math.floor(fps * (duration - 4)); // duration - 4 seconds for intro/outro
+  const contentDuration = Math.max(Math.floor(fps * (safeDuration - 4)), fps); // minimum 1 second, safeDuration - 4 seconds for intro/outro
   const outroDuration = Math.floor(fps * 2); // 2 seconds
   
   // Animations

@@ -55,54 +55,80 @@ def test_slideshow_endpoints():
     print("   Testing GET /api/health...")
     try:
         response = requests.get(f"{API_BASE}/health", timeout=10)
-        if response.status_code == 404:
-            print("   ❌ GET /api/health endpoint not found (404)")
+        if response.status_code == 200:
+            data = response.json()
+            print(f"   ✅ GET /api/health working: {data}")
+            health_working = True
         else:
-            print(f"   Status: {response.status_code}, Response: {response.text}")
+            print(f"   ❌ GET /api/health failed with status {response.status_code}")
+            health_working = False
     except Exception as e:
         print(f"   ❌ Error testing /api/health: {e}")
+        health_working = False
     
     # Test POST /api/generate-slideshow
     print("   Testing POST /api/generate-slideshow...")
     test_data = {
-        "title": "Test Slideshow",
-        "text": "This is a test slideshow",
+        "title": "Backend Test Slideshow",
+        "text": "This is a comprehensive backend test slideshow with proper data",
         "images": [],
         "theme": "minimal",
         "duration": 15
     }
+    video_id = None
     try:
         response = requests.post(f"{API_BASE}/generate-slideshow", 
                                json=test_data, timeout=10)
-        if response.status_code == 404:
-            print("   ❌ POST /api/generate-slideshow endpoint not found (404)")
+        if response.status_code == 200:
+            data = response.json()
+            video_id = data.get('videoId')
+            print(f"   ✅ POST /api/generate-slideshow working: {data}")
+            generate_working = True
         else:
-            print(f"   Status: {response.status_code}, Response: {response.text}")
+            print(f"   ❌ POST /api/generate-slideshow failed with status {response.status_code}: {response.text}")
+            generate_working = False
     except Exception as e:
         print(f"   ❌ Error testing /api/generate-slideshow: {e}")
+        generate_working = False
     
     # Test GET /api/videos
     print("   Testing GET /api/videos...")
     try:
         response = requests.get(f"{API_BASE}/videos", timeout=10)
-        if response.status_code == 404:
-            print("   ❌ GET /api/videos endpoint not found (404)")
+        if response.status_code == 200:
+            data = response.json()
+            print(f"   ✅ GET /api/videos working: Found {len(data)} videos")
+            videos_working = True
+            # Get a real video ID for status testing
+            if data and not video_id:
+                video_id = data[0]['id']
         else:
-            print(f"   Status: {response.status_code}, Response: {response.text}")
+            print(f"   ❌ GET /api/videos failed with status {response.status_code}")
+            videos_working = False
     except Exception as e:
         print(f"   ❌ Error testing /api/videos: {e}")
+        videos_working = False
     
-    # Test GET /api/video-status/{videoId}
+    # Test GET /api/video-status/{videoId} with real video ID
     print("   Testing GET /api/video-status/{videoId}...")
     try:
-        test_video_id = "test-video-123"
-        response = requests.get(f"{API_BASE}/video-status/{test_video_id}", timeout=10)
-        if response.status_code == 404:
-            print("   ❌ GET /api/video-status/{videoId} endpoint not found (404)")
+        if video_id:
+            response = requests.get(f"{API_BASE}/video-status/{video_id}", timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                print(f"   ✅ GET /api/video-status working: {data}")
+                status_working = True
+            else:
+                print(f"   ❌ GET /api/video-status failed with status {response.status_code}")
+                status_working = False
         else:
-            print(f"   Status: {response.status_code}, Response: {response.text}")
+            print("   ⚠️  No video ID available to test video-status endpoint")
+            status_working = False
     except Exception as e:
         print(f"   ❌ Error testing /api/video-status: {e}")
+        status_working = False
+    
+    return health_working, generate_working, videos_working, status_working
 
 def test_existing_endpoints():
     """Test the endpoints that actually exist in the backend"""

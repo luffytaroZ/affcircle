@@ -12,6 +12,8 @@ const Dashboard = () => {
   const [showSlideshowGenerator, setShowSlideshowGenerator] = useState(false)
   const [showUserProfile, setShowUserProfile] = useState(false)
   const [showVideoAnalytics, setShowVideoAnalytics] = useState(false)
+  const [showVideoEditor, setShowVideoEditor] = useState(false)
+  const [selectedVideo, setSelectedVideo] = useState(null)
   const [stats, setStats] = useState({
     totalSlideshows: 12,
     totalViews: 1247,

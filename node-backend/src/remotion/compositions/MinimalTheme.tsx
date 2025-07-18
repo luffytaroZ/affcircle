@@ -27,18 +27,6 @@ export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], d
   const contentDuration = Math.max(Math.floor(fps * (safeDuration - 4)), fps); // minimum 1 second, safeDuration - 4 seconds for intro/outro
   const outroDuration = Math.floor(fps * 2); // 2 seconds
   
-export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], duration }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  
-  // Ensure duration is a valid number with fallback
-  const safeDuration = typeof duration === 'number' && isFinite(duration) && duration > 0 ? duration : 15;
-  
-  // Calculate durations with safety checks
-  const titleDuration = Math.floor(fps * 2); // 2 seconds
-  const contentDuration = Math.max(Math.floor(fps * (safeDuration - 4)), fps); // minimum 1 second, safeDuration - 4 seconds for intro/outro
-  const outroDuration = Math.floor(fps * 2); // 2 seconds
-  
   // Debug: Log values to see what's happening
   console.log('MinimalTheme props:', { title, text, images, duration, safeDuration, titleDuration, contentDuration, outroDuration, frame });
   

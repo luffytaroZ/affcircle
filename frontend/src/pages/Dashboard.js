@@ -7,6 +7,23 @@ const Dashboard = () => {
   const { user, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState('slideshows')
   const [showSlideshowGenerator, setShowSlideshowGenerator] = useState(false)
+  const [stats, setStats] = useState({
+    totalSlideshows: 12,
+    totalViews: 1247,
+    completedToday: 3,
+    processingCount: 1
+  })
+
+  // Simulate real-time stats updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats(prev => ({
+        ...prev,
+        totalViews: prev.totalViews + Math.floor(Math.random() * 5)
+      }))
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleSignOut = async () => {
     await signOut()
@@ -17,10 +34,34 @@ const Dashboard = () => {
   }
 
   const mockSlideshows = [
-    { id: 1, title: 'Marketing Campaign Q4', type: 'Text', status: 'Completed', created: '2025-01-15', theme: 'Corporate' },
-    { id: 2, title: 'Product Launch Video', type: 'Images', status: 'Processing', created: '2025-01-14', theme: 'Minimal' },
-    { id: 3, title: 'Company Overview', type: 'Text', status: 'Draft', created: '2025-01-13', theme: 'Storytelling' },
+    { id: 1, title: 'Marketing Campaign Q4', type: 'Text', status: 'Completed', created: '2025-01-15', theme: 'Corporate', views: 145, thumbnail: '/api/placeholder/300/200' },
+    { id: 2, title: 'Product Launch Video', type: 'Images', status: 'Processing', created: '2025-01-14', theme: 'Minimal', views: 89, thumbnail: '/api/placeholder/300/200' },
+    { id: 3, title: 'Company Overview', type: 'Text', status: 'Draft', created: '2025-01-13', theme: 'Storytelling', views: 234, thumbnail: '/api/placeholder/300/200' },
+    { id: 4, title: 'Social Media Stories', type: 'Images', status: 'Completed', created: '2025-01-12', theme: 'Minimal', views: 678, thumbnail: '/api/placeholder/300/200' },
+    { id: 5, title: 'Brand Presentation', type: 'Text', status: 'Completed', created: '2025-01-11', theme: 'Corporate', views: 423, thumbnail: '/api/placeholder/300/200' },
   ]
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  }
 
   return (
     <>

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const SlideshowGenerator = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState('text')
@@ -10,18 +10,43 @@ const SlideshowGenerator = ({ onClose }) => {
   const [slideshowTitle, setSlideshowTitle] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedSlideshow, setGeneratedSlideshow] = useState(null)
+  const [progress, setProgress] = useState(0)
   const fileInputRef = useRef(null)
 
   const themes = [
-    { id: 'minimal', name: 'Minimal', color: 'bg-gray-600', description: 'Clean and simple design' },
-    { id: 'corporate', name: 'Corporate', color: 'bg-blue-600', description: 'Professional business style' },
-    { id: 'storytelling', name: 'Storytelling', color: 'bg-purple-600', description: 'Narrative-focused layout' },
+    { 
+      id: 'minimal', 
+      name: 'Minimal', 
+      color: 'from-gray-500 to-gray-600',
+      gradient: 'from-gray-500/20 to-gray-600/20',
+      border: 'border-gray-500/30',
+      description: 'Clean and simple design with elegant typography',
+      preview: '🎨'
+    },
+    { 
+      id: 'corporate', 
+      name: 'Corporate', 
+      color: 'from-blue-500 to-blue-600',
+      gradient: 'from-blue-500/20 to-blue-600/20',
+      border: 'border-blue-500/30',
+      description: 'Professional business style with modern layouts',
+      preview: '💼'
+    },
+    { 
+      id: 'storytelling', 
+      name: 'Storytelling', 
+      color: 'from-purple-500 to-purple-600',
+      gradient: 'from-purple-500/20 to-purple-600/20',
+      border: 'border-purple-500/30',
+      description: 'Narrative-focused layout with emotional appeal',
+      preview: '📖'
+    },
   ]
 
   const durations = [
-    { value: 15, label: '15 seconds' },
-    { value: 30, label: '30 seconds' },
-    { value: 60, label: '60 seconds' },
+    { value: 15, label: '15 seconds', description: 'Quick & snappy' },
+    { value: 30, label: '30 seconds', description: 'Perfect balance' },
+    { value: 60, label: '60 seconds', description: 'Detailed story' },
   ]
 
   const handleImageUpload = (e) => {

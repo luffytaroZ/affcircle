@@ -248,11 +248,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Slideshow Generator API Endpoints"
-    - "Video Processing with Remotion"
-    - "MongoDB Database Integration"
-    - "API Error Handling and Validation"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"

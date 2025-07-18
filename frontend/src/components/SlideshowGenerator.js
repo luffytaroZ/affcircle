@@ -675,34 +675,38 @@ const SlideshowGenerator = ({ onClose }) => {
             className="mb-8"
           >
             <label className="block text-sm font-medium text-gray-300 mb-3">
-              Choose Theme *
+              Choose Theme * <span className="text-xs text-gray-500">({themes.length} themes available)</span>
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {themes.map((theme) => (
                 <motion.button
                   key={theme.id}
                   onClick={() => setSelectedTheme(theme.id)}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`relative p-6 rounded-2xl border-2 transition-all ${
+                  className={`relative p-4 rounded-2xl border-2 transition-all ${
                     selectedTheme === theme.id
-                      ? `border-red-500 bg-gradient-to-br ${theme.gradient}`
-                      : `${theme.border} hover:border-gray-500 bg-gradient-to-br ${theme.gradient}`
+                      ? `border-red-500 bg-gradient-to-br ${theme.gradient} shadow-lg`
+                      : `${theme.border} hover:border-gray-500 bg-gradient-to-br ${theme.gradient} hover:shadow-md`
                   }`}
                 >
                   <div className="text-center">
-                    <div className={`w-12 h-12 bg-gradient-to-r ${theme.color} rounded-xl mx-auto mb-4 flex items-center justify-center text-2xl`}>
+                    <div className={`w-10 h-10 bg-gradient-to-r ${theme.color} rounded-xl mx-auto mb-3 flex items-center justify-center text-xl shadow-md`}>
                       {theme.preview}
                     </div>
-                    <h3 className="text-white font-bold text-lg mb-2">{theme.name}</h3>
-                    <p className="text-gray-400 text-sm">{theme.description}</p>
+                    <h3 className="text-white font-bold text-sm mb-1">{theme.name}</h3>
+                    <p className="text-gray-400 text-xs leading-tight">{theme.description}</p>
                   </div>
                   {selectedTheme === theme.id && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-2 right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
+                    >
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
-                    </div>
+                    </motion.div>
                   )}
                 </motion.button>
               ))}

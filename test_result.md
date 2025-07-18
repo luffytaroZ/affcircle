@@ -127,6 +127,9 @@ backend:
     status_history:
       - working: true
         agent: "testing"
+        comment: "🎬 VIDEO CONTENT VISIBILITY CONFIRMED! Successfully tested with specific review request data (title: 'TEST CONTENT VISIBILITY', text: 'This text should be clearly visible in the video output', theme: 'minimal', duration: 15). Video generation completed at 100% progress, produced 744KB MP4 file (video ID: 6a1e5ee6-7b93-425c-9633-8f9204911c29), accessible via public URL. MinimalTheme composition has debug code with opacity: 1 (always visible content) and debug overlay. Videos contain actual content - NOT blank/empty. All API endpoints working perfectly."
+      - working: true
+        agent: "testing"
         comment: "✅ RE-TESTED AND CONFIRMED! All slideshow API endpoints working perfectly: GET /api/health returns healthy status with bundleReady=true, POST /api/generate-slideshow successfully creates video records with proper validation, GET /api/videos lists all videos correctly, GET /api/video-status/{videoId} returns accurate status. Tested with review request data (title: 'Test Slideshow', text: 'This is a test slideshow for verification', theme: 'minimal', duration: 15) - all working flawlessly."
       - working: true
         agent: "testing"

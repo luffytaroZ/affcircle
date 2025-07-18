@@ -222,9 +222,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Supabase Client Integration"
-    - "Authentication Components"
-    - "Dashboard Page"
+    - "Slideshow Generator API Endpoints"
+    - "Video Processing with Remotion"
+    - "MongoDB Database Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"

@@ -24,7 +24,7 @@ export const StorytellingTheme: React.FC<ThemeProps> = ({ title, text, images = 
   
   // Calculate durations with safety checks
   const titleDuration = Math.floor(fps * 2.5); // 2.5 seconds
-  const contentDuration = Math.max(Math.floor(fps * (safeDuration - 5)), fps); // minimum 1 second, safeDuration - 5 seconds for intro/outro
+  const contentDuration = Math.max(Math.floor(fps * (safeDuration - 5)), fps); // minimum 1 second
   const outroDuration = Math.floor(fps * 2.5); // 2.5 seconds
   
   // Animations
@@ -94,7 +94,7 @@ export const StorytellingTheme: React.FC<ThemeProps> = ({ title, text, images = 
       />
       
       {/* Title Sequence */}
-      <Sequence from={0} durationInFrames={titleDuration}>
+      <Sequence from={0} durationInFrames={titleDuration + 30}>
         <AbsoluteFill
           style={{
             display: 'flex',
@@ -135,7 +135,7 @@ export const StorytellingTheme: React.FC<ThemeProps> = ({ title, text, images = 
       </Sequence>
 
       {/* Content Sequence */}
-      <Sequence from={titleDuration} durationInFrames={contentDuration}>
+      <Sequence from={titleDuration} durationInFrames={contentDuration + 30}>
         <AbsoluteFill
           style={{
             display: 'flex',

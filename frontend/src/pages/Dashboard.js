@@ -506,6 +506,14 @@ const Dashboard = () => {
       {showSlideshowGenerator && (
         <SlideshowGenerator onClose={() => setShowSlideshowGenerator(false)} />
       )}
+
+      {/* User Profile Modal */}
+      {showUserProfile && (
+        <UserProfile 
+          isOpen={showUserProfile} 
+          onClose={() => setShowUserProfile(false)} 
+        />
+      )}
     </>
   )
 }

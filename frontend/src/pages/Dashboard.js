@@ -533,6 +533,14 @@ const Dashboard = () => {
           onClose={() => setShowUserProfile(false)} 
         />
       )}
+
+      {/* Video Analytics Modal */}
+      {showVideoAnalytics && (
+        <VideoAnalytics 
+          isOpen={showVideoAnalytics} 
+          onClose={() => setShowVideoAnalytics(false)} 
+        />
+      )}
     </>
   )
 }

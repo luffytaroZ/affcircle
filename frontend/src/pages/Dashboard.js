@@ -293,11 +293,7 @@ const Dashboard = () => {
                             </div>
                           </div>
                           <div className="absolute top-3 right-3 z-20">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              slideshow.theme === 'Corporate' ? 'bg-blue-500/20 text-blue-400' :
-                              slideshow.theme === 'Minimal' ? 'bg-gray-500/20 text-gray-400' :
-                              'bg-purple-500/20 text-purple-400'
-                            }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getThemeColor(slideshow.theme)}`}>
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                               </svg>

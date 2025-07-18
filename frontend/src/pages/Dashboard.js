@@ -458,6 +458,19 @@ const Dashboard = () => {
                 </motion.div>
               )}
 
+              {activeTab === 'threads' && (
+                <motion.div
+                  key="threads"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-6"
+                >
+                  <ThreadMaker />
+                </motion.div>
+              )}
+
               {activeTab === 'analytics' && (
                 <motion.div
                   key="analytics"

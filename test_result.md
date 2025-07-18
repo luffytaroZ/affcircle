@@ -232,3 +232,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "🎉 MVP COMPLETE! Both core features successfully implemented: 1) Supabase authentication with sign up/login/dashboard access, 2) Slideshow generator with text/image input, theme selection, duration options, and generation flow. Demo mode at /demo showcases full functionality. Ready for production integration with Remotion and video processing!"
+  - agent: "testing"
+    message: "🔍 BACKEND TESTING COMPLETE! Discovered and tested fully functional Node.js backend at /node-backend/. All slideshow generator API endpoints working perfectly: health check, video generation, video listing, and status tracking. Remotion integration, MongoDB database, and error handling all operational. The backend is production-ready for slideshow generation with proper validation and async video processing."

@@ -177,23 +177,17 @@ backend:
         agent: "main"
         comment: "MongoDB connection established successfully with slideshow_db database."
 
-  - task: "API Error Handling and Validation"
+  - task: "Thread Maker API Endpoints"
     implemented: true
-    working: true
+    working: "pending_test"
     file: "node-backend/src/server.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: true
-        agent: "testing"
-        comment: "✅ RE-TESTED AND CONFIRMED! Comprehensive error handling and validation working perfectly. Proper 400 errors for missing required fields (title, theme, duration), invalid themes (must be minimal/corporate/storytelling), invalid durations (must be 15/30/60), and 404 errors for non-existent video IDs. All error responses properly formatted and informative."
-      - working: true
-        agent: "testing"
-        comment: "✅ Comprehensive error handling implemented. Proper validation for missing fields (400), invalid themes (400), invalid durations (400), and non-existent video IDs (404). All error responses are properly formatted and informative."
-      - working: true
+      - working: "pending_test"
         agent: "main"
-        comment: "All API endpoints ready for testing with proper error handling."
+        comment: "Thread Maker API endpoints implemented with GPT-4 integration via emergentintegrations library. Includes generate-thread, thread-status, threads listing, and delete endpoints. Python LLM service created for AI integration."
 
 frontend:
   - task: "Supabase Client Integration"

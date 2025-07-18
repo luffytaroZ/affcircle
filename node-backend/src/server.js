@@ -82,8 +82,8 @@ app.post('/api/generate-slideshow', async (req, res) => {
       return res.status(400).json({ error: 'Duration must be 15, 30, or 60 seconds' });
     }
 
-    if (!['minimal', 'corporate', 'storytelling'].includes(theme)) {
-      return res.status(400).json({ error: 'Theme must be minimal, corporate, or storytelling' });
+    if (!['minimal', 'corporate', 'storytelling', 'modern', 'creative', 'professional', 'elegant', 'cinematic'].includes(theme)) {
+      return res.status(400).json({ error: 'Theme must be one of: minimal, corporate, storytelling, modern, creative, professional, elegant, cinematic' });
     }
 
     // Create video record in database

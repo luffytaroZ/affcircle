@@ -35,11 +35,28 @@ const Dashboard = () => {
 
   const mockSlideshows = [
     { id: 1, title: 'Marketing Campaign Q4', type: 'Text', status: 'Completed', created: '2025-01-15', theme: 'Corporate', views: 145, thumbnail: '/api/placeholder/300/200' },
-    { id: 2, title: 'Product Launch Video', type: 'Images', status: 'Processing', created: '2025-01-14', theme: 'Minimal', views: 89, thumbnail: '/api/placeholder/300/200' },
+    { id: 2, title: 'Product Launch Video', type: 'Images', status: 'Processing', created: '2025-01-14', theme: 'Modern', views: 89, thumbnail: '/api/placeholder/300/200' },
     { id: 3, title: 'Company Overview', type: 'Text', status: 'Draft', created: '2025-01-13', theme: 'Storytelling', views: 234, thumbnail: '/api/placeholder/300/200' },
-    { id: 4, title: 'Social Media Stories', type: 'Images', status: 'Completed', created: '2025-01-12', theme: 'Minimal', views: 678, thumbnail: '/api/placeholder/300/200' },
-    { id: 5, title: 'Brand Presentation', type: 'Text', status: 'Completed', created: '2025-01-11', theme: 'Corporate', views: 423, thumbnail: '/api/placeholder/300/200' },
+    { id: 4, title: 'Creative Portfolio', type: 'Images', status: 'Completed', created: '2025-01-12', theme: 'Creative', views: 678, thumbnail: '/api/placeholder/300/200' },
+    { id: 5, title: 'Executive Summary', type: 'Text', status: 'Completed', created: '2025-01-11', theme: 'Professional', views: 423, thumbnail: '/api/placeholder/300/200' },
+    { id: 6, title: 'Wedding Highlights', type: 'Images', status: 'Completed', created: '2025-01-10', theme: 'Elegant', views: 891, thumbnail: '/api/placeholder/300/200' },
+    { id: 7, title: 'Movie Trailer', type: 'Images', status: 'Processing', created: '2025-01-09', theme: 'Cinematic', views: 0, thumbnail: '/api/placeholder/300/200' },
   ]
+
+  // Helper function to get theme colors
+  const getThemeColor = (theme) => {
+    const themeColors = {
+      'Corporate': 'bg-blue-500/20 text-blue-400',
+      'Minimal': 'bg-gray-500/20 text-gray-400', 
+      'Storytelling': 'bg-purple-500/20 text-purple-400',
+      'Modern': 'bg-teal-500/20 text-teal-400',
+      'Creative': 'bg-pink-500/20 text-pink-400',
+      'Professional': 'bg-indigo-500/20 text-indigo-400',
+      'Elegant': 'bg-rose-500/20 text-rose-400',
+      'Cinematic': 'bg-amber-500/20 text-amber-400'
+    }
+    return themeColors[theme] || 'bg-gray-500/20 text-gray-400'
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },

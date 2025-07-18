@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import DemoMode from "./pages/DemoMode";
 import {
   Navigation,
   Hero,
@@ -19,6 +20,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/demo" element={<DemoMode />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

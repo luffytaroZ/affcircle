@@ -70,23 +70,71 @@ const SlideshowGenerator = ({ onClose }) => {
 
     setIsGenerating(true)
 
-    // Mock slideshow generation - in real implementation, this would call Remotion API
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    try {
+      // Prepare the data for the API
+      const videoData = {
+        title: slideshowTitle,
+        text: activeTab === 'text' ? textContent : '',
+        images: activeTab === 'images' ? images.map(img => img.url) : [],
+        theme: selectedTheme,
+        duration: duration
+      }
 
-    const mockSlideshow = {
-      id: Date.now(),
-      title: slideshowTitle,
-      type: activeTab,
-      theme: selectedTheme,
-      duration: duration,
-      status: 'completed',
-      videoUrl: '/mock-video.mp4', // This would be the actual video URL
-      thumbnailUrl: '/mock-thumbnail.jpg',
-      createdAt: new Date().toISOString(),
+      // Call the Node.js backend API
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/generate-slideshow`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(videoData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate slideshow')
+      }
+
+      // Start polling for video status
+      const videoId = result.videoId
+      pollVideoStatus(videoId)
+
+    } catch (error) {
+      console.error('Error generating slideshow:', error)
+      alert('Failed to generate slideshow: ' + error.message)
+      setIsGenerating(false)
     }
+  }
 
-    setGeneratedSlideshow(mockSlideshow)
-    setIsGenerating(false)
+  const pollVideoStatus = async (videoId) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/video-status/${videoId}`)
+      const videoStatus = await response.json()
+
+      if (videoStatus.status === 'completed') {
+        const generatedSlideshow = {
+          id: videoStatus.id,
+          title: videoStatus.title,
+          type: activeTab,
+          theme: videoStatus.theme,
+          duration: videoStatus.duration,
+          status: 'completed',
+          videoUrl: videoStatus.videoUrl,
+          createdAt: videoStatus.createdAt,
+        }
+        setGeneratedSlideshow(generatedSlideshow)
+        setIsGenerating(false)
+      } else if (videoStatus.status === 'failed') {
+        throw new Error(videoStatus.error || 'Video generation failed')
+      } else {
+        // Still processing, poll again after 3 seconds
+        setTimeout(() => pollVideoStatus(videoId), 3000)
+      }
+    } catch (error) {
+      console.error('Error checking video status:', error)
+      alert('Failed to check video status: ' + error.message)
+      setIsGenerating(false)
+    }
   }
 
   const resetForm = () => {

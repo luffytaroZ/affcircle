@@ -1,6 +1,10 @@
 {
   "dependencies": {
-    "framer-motion": "^12.23.6"
+    "@remotion/cli": "^4.0.324",
+    "@remotion/renderer": "^4.0.324",
+    "ffmpeg-static": "^5.2.0",
+    "framer-motion": "^12.23.6",
+    "remotion": "^4.0.324"
   },
   "name": "app",
   "version": "1.0.0",

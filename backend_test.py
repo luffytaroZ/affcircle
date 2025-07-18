@@ -172,18 +172,77 @@ def test_error_handling():
     """Test error handling with invalid data"""
     print("\n4. Testing Error Handling...")
     
-    # Test POST /api/status with invalid data
-    print("   Testing POST /api/status with invalid data...")
+    # Test POST /api/generate-slideshow with missing required fields
+    print("   Testing POST /api/generate-slideshow with missing title...")
     try:
-        response = requests.post(f"{API_BASE}/status", 
-                               json={}, timeout=10)  # Missing required field
+        invalid_data = {
+            "text": "Missing title",
+            "images": [],
+            "theme": "minimal",
+            "duration": 15
+        }
+        response = requests.post(f"{API_BASE}/generate-slideshow", 
+                               json=invalid_data, timeout=10)
         print(f"   Status: {response.status_code}, Response: {response.text}")
-        if response.status_code == 422:  # FastAPI validation error
-            print("   ✅ Proper validation error handling")
+        if response.status_code == 400:
+            print("   ✅ Proper validation error handling for missing title")
         else:
-            print("   ⚠️  Unexpected response for invalid data")
+            print("   ⚠️  Unexpected response for missing title")
     except Exception as e:
-        print(f"   ❌ Error testing invalid data: {e}")
+        print(f"   ❌ Error testing missing title: {e}")
+    
+    # Test POST /api/generate-slideshow with invalid theme
+    print("   Testing POST /api/generate-slideshow with invalid theme...")
+    try:
+        invalid_data = {
+            "title": "Test Slideshow",
+            "text": "Invalid theme test",
+            "images": [],
+            "theme": "invalid_theme",
+            "duration": 15
+        }
+        response = requests.post(f"{API_BASE}/generate-slideshow", 
+                               json=invalid_data, timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation error handling for invalid theme")
+        else:
+            print("   ⚠️  Unexpected response for invalid theme")
+    except Exception as e:
+        print(f"   ❌ Error testing invalid theme: {e}")
+    
+    # Test POST /api/generate-slideshow with invalid duration
+    print("   Testing POST /api/generate-slideshow with invalid duration...")
+    try:
+        invalid_data = {
+            "title": "Test Slideshow",
+            "text": "Invalid duration test",
+            "images": [],
+            "theme": "minimal",
+            "duration": 45  # Invalid duration
+        }
+        response = requests.post(f"{API_BASE}/generate-slideshow", 
+                               json=invalid_data, timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation error handling for invalid duration")
+        else:
+            print("   ⚠️  Unexpected response for invalid duration")
+    except Exception as e:
+        print(f"   ❌ Error testing invalid duration: {e}")
+    
+    # Test GET /api/video-status with non-existent video ID
+    print("   Testing GET /api/video-status with non-existent ID...")
+    try:
+        fake_id = "non-existent-video-id-12345"
+        response = requests.get(f"{API_BASE}/video-status/{fake_id}", timeout=10)
+        print(f"   Status: {response.status_code}, Response: {response.text}")
+        if response.status_code == 404:
+            print("   ✅ Proper 404 handling for non-existent video")
+        else:
+            print("   ⚠️  Unexpected response for non-existent video")
+    except Exception as e:
+        print(f"   ❌ Error testing non-existent video: {e}")
 
 def main():
     """Run all tests"""

@@ -27,7 +27,22 @@ export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], d
   const contentDuration = Math.max(Math.floor(fps * (safeDuration - 4)), fps); // minimum 1 second, safeDuration - 4 seconds for intro/outro
   const outroDuration = Math.floor(fps * 2); // 2 seconds
   
-  // Animations
+export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], duration }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  
+  // Ensure duration is a valid number with fallback
+  const safeDuration = typeof duration === 'number' && isFinite(duration) && duration > 0 ? duration : 15;
+  
+  // Calculate durations with safety checks
+  const titleDuration = Math.floor(fps * 2); // 2 seconds
+  const contentDuration = Math.max(Math.floor(fps * (safeDuration - 4)), fps); // minimum 1 second, safeDuration - 4 seconds for intro/outro
+  const outroDuration = Math.floor(fps * 2); // 2 seconds
+  
+  // Debug: Log values to see what's happening
+  console.log('MinimalTheme props:', { title, text, images, duration, safeDuration, titleDuration, contentDuration, outroDuration, frame });
+  
+  // Simple animations
   const titleOpacity = interpolate(frame, [0, 30], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -50,111 +65,59 @@ export const MinimalTheme: React.FC<ThemeProps> = ({ title, text, images = [], d
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#ffffff' }}>
-      {/* Title Sequence */}
-      <Sequence from={0} durationInFrames={titleDuration}>
-        <AbsoluteFill
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: titleOpacity,
-            transform: `scale(${titleScale})`,
-          }}
-        >
-          <h1
-            style={{
-              fontSize: 72,
-              fontWeight: 'bold',
-              color: '#1a1a1a',
-              textAlign: 'center',
-              fontFamily: 'Arial, sans-serif',
-              maxWidth: '80%',
-              lineHeight: 1.2,
-            }}
-          >
-            {title}
-          </h1>
-        </AbsoluteFill>
-      </Sequence>
-
-      {/* Content Sequence */}
-      <Sequence from={titleDuration} durationInFrames={contentDuration}>
-        <AbsoluteFill
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: contentOpacity,
-            padding: '60px',
-          }}
-        >
-          {images.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Img
-                src={images[0]}
-                style={{
-                  width: '600px',
-                  height: '400px',
-                  objectFit: 'cover',
-                  borderRadius: '8px',
-                  marginBottom: '40px',
-                }}
-              />
-              {text && (
-                <p
-                  style={{
-                    fontSize: 32,
-                    color: '#4a4a4a',
-                    textAlign: 'center',
-                    maxWidth: '800px',
-                    lineHeight: 1.4,
-                    fontFamily: 'Arial, sans-serif',
-                  }}
-                >
-                  {text}
-                </p>
-              )}
-            </div>
-          ) : (
-            <p
-              style={{
-                fontSize: 48,
-                color: '#4a4a4a',
-                textAlign: 'center',
-                maxWidth: '80%',
-                lineHeight: 1.4,
-                fontFamily: 'Arial, sans-serif',
-              }}
-            >
-              {text}
-            </p>
-          )}
-        </AbsoluteFill>
-      </Sequence>
-
-      {/* Outro Sequence */}
-      <Sequence from={titleDuration + contentDuration} durationInFrames={outroDuration}>
-        <AbsoluteFill
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#f8f9fa',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 24,
-              color: '#6c757d',
-              textAlign: 'center',
-              fontFamily: 'Arial, sans-serif',
-            }}
-          >
-            Thank you for watching
-          </div>
-        </AbsoluteFill>
-      </Sequence>
+      {/* Always show title for debugging */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: 72,
+          fontWeight: 'bold',
+          color: '#1a1a1a',
+          textAlign: 'center',
+          fontFamily: 'Arial, sans-serif',
+          opacity: titleOpacity,
+          zIndex: 10,
+        }}
+      >
+        {title || 'NO TITLE PROVIDED'}
+      </div>
+      
+      {/* Always show text for debugging */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '60%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontSize: 32,
+          color: '#4a4a4a',
+          textAlign: 'center',
+          fontFamily: 'Arial, sans-serif',
+          opacity: contentOpacity,
+          zIndex: 10,
+        }}
+      >
+        {text || 'NO TEXT PROVIDED'}
+      </div>
+      
+      {/* Debug info */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          fontSize: 16,
+          color: '#ff0000',
+          fontFamily: 'Arial, sans-serif',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '10px',
+          zIndex: 20,
+        }}
+      >
+        Frame: {frame} | Duration: {safeDuration}s | Title: {title ? 'YES' : 'NO'} | Text: {text ? 'YES' : 'NO'}
+      </div>
     </AbsoluteFill>
   );
 };

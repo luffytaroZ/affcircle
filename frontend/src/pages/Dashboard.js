@@ -132,7 +132,8 @@ const Dashboard = () => {
                 <div className="flex items-center space-x-3">
                   <motion.div 
                     whileHover={{ scale: 1.05 }}
-                    className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg"
+                    onClick={() => setShowUserProfile(true)}
+                    className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg cursor-pointer"
                   >
                     <span className="text-sm font-bold text-white">
                       {user?.email?.charAt(0).toUpperCase() || 'U'}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import SlideshowGenerator from '../components/SlideshowGenerator'
 import UserProfile from '../components/UserProfile'
+import VideoAnalytics from '../components/VideoAnalytics'
 
 const Dashboard = () => {
   const { user, signOut } = useAuth()

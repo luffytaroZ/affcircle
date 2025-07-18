@@ -110,17 +110,45 @@ def test_slideshow_endpoints():
         print(f"   ❌ Error testing /api/videos: {e}")
         videos_working = False
     
-    # Test GET /api/video-status/{videoId} with real video ID
-    print("   Testing GET /api/video-status/{videoId}...")
+    # Test GET /api/video-status/{videoId} with real video ID and monitor progress
+    print("   Testing GET /api/video-status/{videoId} and monitoring video generation...")
+    status_working = False
     try:
         if video_id:
-            response = requests.get(f"{API_BASE}/video-status/{video_id}", timeout=10)
-            if response.status_code == 200:
-                data = response.json()
-                print(f"   ✅ GET /api/video-status working: {data}")
-                status_working = True
-            else:
-                print(f"   ❌ GET /api/video-status failed with status {response.status_code}")
+            # Monitor video generation progress for up to 2 minutes
+            import time
+            max_wait_time = 120  # 2 minutes
+            start_time = time.time()
+            
+            while time.time() - start_time < max_wait_time:
+                response = requests.get(f"{API_BASE}/video-status/{video_id}", timeout=10)
+                if response.status_code == 200:
+                    data = response.json()
+                    print(f"   📊 Video Status: {data.get('status', 'unknown')} - {data.get('title', 'No title')}")
+                    
+                    if data.get('status') == 'completed':
+                        print(f"   ✅ Video generation COMPLETED!")
+                        if 'videoUrl' in data:
+                            print(f"   🎬 Video URL: {data['videoUrl']}")
+                            print(f"   📝 Video contains: Title='{data.get('title')}', Theme='{data.get('theme')}', Duration={data.get('duration')}s")
+                        status_working = True
+                        break
+                    elif data.get('status') == 'failed':
+                        print(f"   ❌ Video generation FAILED: {data.get('error', 'Unknown error')}")
+                        status_working = False
+                        break
+                    elif data.get('status') == 'processing':
+                        print(f"   ⏳ Video still processing... waiting 10 seconds")
+                        time.sleep(10)
+                    else:
+                        print(f"   ⚠️  Unknown status: {data.get('status')}")
+                        time.sleep(5)
+                else:
+                    print(f"   ❌ GET /api/video-status failed with status {response.status_code}")
+                    break
+            
+            if time.time() - start_time >= max_wait_time:
+                print(f"   ⏰ Video generation timeout after {max_wait_time} seconds")
                 status_working = False
         else:
             print("   ⚠️  No video ID available to test video-status endpoint")

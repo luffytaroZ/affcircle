@@ -46,7 +46,7 @@ export const StorytellingTheme: React.FC<ThemeProps> = ({ title, text, images = 
   );
 
   // Split text into words for animated reveal
-  const words = text.split(' ');
+  const words = (text || '').split(' ').filter(word => word.length > 0);
   const wordsPerSecond = 3;
   const wordDelay = fps / wordsPerSecond;
 

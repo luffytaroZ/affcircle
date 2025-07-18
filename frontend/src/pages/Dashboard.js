@@ -561,6 +561,18 @@ const Dashboard = () => {
           onClose={() => setShowVideoAnalytics(false)} 
         />
       )}
+
+      {/* Video Editor Modal */}
+      {showVideoEditor && selectedVideo && (
+        <VideoEditor 
+          isOpen={showVideoEditor} 
+          onClose={() => {
+            setShowVideoEditor(false)
+            setSelectedVideo(null)
+          }}
+          videoData={selectedVideo}
+        />
+      )}
     </>
   )
 }

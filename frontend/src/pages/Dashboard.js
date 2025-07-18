@@ -11,6 +11,7 @@ const Dashboard = () => {
   const { user, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState('slideshows')
   const [showSlideshowGenerator, setShowSlideshowGenerator] = useState(false)
+  const [showThreadMaker, setShowThreadMaker] = useState(false)
   const [showUserProfile, setShowUserProfile] = useState(false)
   const [showVideoAnalytics, setShowVideoAnalytics] = useState(false)
   const [showVideoEditor, setShowVideoEditor] = useState(false)
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalSlideshows: 12,
     totalViews: 1247,
+    totalThreads: 8,
     completedToday: 3,
     processingCount: 1
   })

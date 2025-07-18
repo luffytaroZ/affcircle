@@ -61,7 +61,8 @@ const SlideshowGenerator = ({ onClose }) => {
             id: Date.now() + Math.random(),
             file: file,
             url: e.target.result,
-            name: file.name
+            name: file.name,
+            size: file.size
           })
           
           if (newImages.length === files.length) {
@@ -94,6 +95,18 @@ const SlideshowGenerator = ({ onClose }) => {
     }
 
     setIsGenerating(true)
+    setProgress(0)
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval)
+          return prev
+        }
+        return prev + Math.random() * 10
+      })
+    }, 500)
 
     try {
       // Prepare the data for the API
@@ -122,12 +135,16 @@ const SlideshowGenerator = ({ onClose }) => {
 
       // Start polling for video status
       const videoId = result.videoId
+      clearInterval(progressInterval)
+      setProgress(95)
       pollVideoStatus(videoId)
 
     } catch (error) {
       console.error('Error generating slideshow:', error)
       alert('Failed to generate slideshow: ' + error.message)
       setIsGenerating(false)
+      setProgress(0)
+      clearInterval(progressInterval)
     }
   }
 
@@ -137,6 +154,7 @@ const SlideshowGenerator = ({ onClose }) => {
       const videoStatus = await response.json()
 
       if (videoStatus.status === 'completed') {
+        setProgress(100)
         const generatedSlideshow = {
           id: videoStatus.id,
           title: videoStatus.title,
@@ -159,6 +177,7 @@ const SlideshowGenerator = ({ onClose }) => {
       console.error('Error checking video status:', error)
       alert('Failed to check video status: ' + error.message)
       setIsGenerating(false)
+      setProgress(0)
     }
   }
 
@@ -170,70 +189,139 @@ const SlideshowGenerator = ({ onClose }) => {
     setActiveTab('text')
     setSelectedTheme('minimal')
     setDuration(30)
+    setProgress(0)
   }
 
+  // Enhanced success state
   if (generatedSlideshow) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-gray-900 border border-gray-700 rounded-lg p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+          initial={{ opacity: 0, scale: 0.9, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="bg-gradient-to-br from-gray-900 to-black border border-gray-700/50 rounded-3xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
         >
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
+            >
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Slideshow Generated!</h2>
-            <p className="text-gray-400 mb-6">Your slideshow has been successfully created</p>
+            </motion.div>
+            
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-3xl font-bold text-white mb-3"
+            >
+              🎉 Slideshow Created!
+            </motion.h2>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-gray-400 mb-8 text-lg"
+            >
+              Your slideshow has been generated successfully
+            </motion.p>
             
             {/* Video Player */}
             {generatedSlideshow.videoUrl && (
-              <div className="bg-gray-800 rounded-lg p-4 mb-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 mb-8"
+              >
                 <video
                   controls
-                  className="w-full max-w-2xl mx-auto rounded-lg"
+                  className="w-full max-w-3xl mx-auto rounded-xl shadow-lg"
                   poster="/api/placeholder/800/450"
                 >
                   <source src={generatedSlideshow.videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-              </div>
+              </motion.div>
             )}
             
-            <div className="bg-gray-800 rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold text-white mb-2">{generatedSlideshow.title}</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
-                <div>Type: {generatedSlideshow.type}</div>
-                <div>Theme: {generatedSlideshow.theme}</div>
-                <div>Duration: {generatedSlideshow.duration}s</div>
-                <div>Status: {generatedSlideshow.status}</div>
+            {/* Slideshow Details */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 mb-8"
+            >
+              <h3 className="text-xl font-bold text-white mb-4">{generatedSlideshow.title}</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="bg-gray-700/50 rounded-lg p-3">
+                  <div className="text-gray-400">Type</div>
+                  <div className="text-white font-medium">{generatedSlideshow.type}</div>
+                </div>
+                <div className="bg-gray-700/50 rounded-lg p-3">
+                  <div className="text-gray-400">Theme</div>
+                  <div className="text-white font-medium">{generatedSlideshow.theme}</div>
+                </div>
+                <div className="bg-gray-700/50 rounded-lg p-3">
+                  <div className="text-gray-400">Duration</div>
+                  <div className="text-white font-medium">{generatedSlideshow.duration}s</div>
+                </div>
+                <div className="bg-gray-700/50 rounded-lg p-3">
+                  <div className="text-gray-400">Status</div>
+                  <div className="text-green-400 font-medium">{generatedSlideshow.status}</div>
+                </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex gap-4 justify-center">
-              <button
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="flex flex-wrap gap-4 justify-center"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={resetForm}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center space-x-2"
               >
-                Create Another
-              </button>
-              <a
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Create Another</span>
+              </motion.button>
+              
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href={generatedSlideshow.videoUrl}
                 download={`${generatedSlideshow.title}.mp4`}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors inline-block"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center space-x-2"
               >
-                Download Video
-              </a>
-              <button
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download Video</span>
+              </motion.a>
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onClose}
-                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center space-x-2"
               >
-                Back to Dashboard
-              </button>
-            </div>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                <span>Back to Dashboard</span>
+              </motion.button>
+            </motion.div>
           </div>
         </motion.div>
       </div>

@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build MVP with 2 core features: 1) Slideshow Generator (text/images → video via Remotion) with 3 themes (Minimal, Corporate, Storytelling) and duration options (15s, 30s, 60s), outputting MP4/GIF. 2) Dashboard Onboarding with Supabase authentication (email/password), user registration/login, and protected dashboard routes."
+user_problem_statement: "Build MVP with 2 core features: 1) Slideshow Generator (text/images → video via Remotion) with 3 themes (Minimal, Corporate, Storytelling) and duration options (15s, 30s, 60s), outputting MP4/GIF. 2) Dashboard Onboarding with Supabase authentication (email/password), user registration/login, and protected dashboard routes. 3) Thread Maker (topic input → GPT-4 writes formatted social-media threads) with multiple styles and platforms."
 
 backend:
   - task: "Supabase Authentication Setup"

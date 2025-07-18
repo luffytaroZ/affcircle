@@ -450,7 +450,7 @@ const Dashboard = () => {
                       </svg>
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-4">Analytics Dashboard</h2>
-                    <p className="text-gray-400 mb-8 text-lg">Track your slideshow performance and engagement metrics</p>
+                    <p className="text-gray-400 mb-8 text-lg">Track your video performance and audience insights</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
                       {[
@@ -477,24 +477,41 @@ const Dashboard = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-2xl mx-auto"
+                      className="max-w-2xl mx-auto"
                     >
-                      <h3 className="text-xl font-bold text-white mb-4">Coming Soon</h3>
-                      <p className="text-gray-400">Advanced analytics features including:</p>
-                      <ul className="mt-4 space-y-2 text-left text-gray-400">
-                        <li className="flex items-center space-x-2">
-                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                          <span>Real-time view tracking</span>
-                        </li>
-                        <li className="flex items-center space-x-2">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          <span>Audience demographics</span>
-                        </li>
-                        <li className="flex items-center space-x-2">
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          <span>Performance insights</span>
-                        </li>
-                      </ul>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowVideoAnalytics(true)}
+                        className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center space-x-3 mx-auto shadow-lg shadow-green-500/25"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>Open Advanced Analytics</span>
+                      </motion.button>
+                      
+                      <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 mt-8">
+                        <h3 className="text-xl font-bold text-white mb-4">Premium Features</h3>
+                        <ul className="space-y-2 text-left text-gray-400">
+                          <li className="flex items-center space-x-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                            <span>Real-time view tracking & engagement metrics</span>
+                          </li>
+                          <li className="flex items-center space-x-2">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            <span>Detailed audience demographics & geography</span>
+                          </li>
+                          <li className="flex items-center space-x-2">
+                            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                            <span>Performance insights & trend analysis</span>
+                          </li>
+                          <li className="flex items-center space-x-2">
+                            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                            <span>Custom reports & data export</span>
+                          </li>
+                        </ul>
+                      </div>
                     </motion.div>
                   </div>
                 </motion.div>

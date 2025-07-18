@@ -48,7 +48,7 @@ const initRemotionBundle = async () => {
   try {
     console.log('Bundling Remotion project...');
     bundleLocation = await bundle({
-      entryPoint: path.join(__dirname, 'remotion/Root.tsx'),
+      entryPoint: path.join(__dirname, 'remotion/index.ts'),
       onProgress: (progress) => {
         console.log(`Bundling progress: ${Math.round(progress * 100)}%`);
       },

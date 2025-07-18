@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('slideshows')
   const [showSlideshowGenerator, setShowSlideshowGenerator] = useState(false)
   const [showUserProfile, setShowUserProfile] = useState(false)
+  const [showVideoAnalytics, setShowVideoAnalytics] = useState(false)
   const [stats, setStats] = useState({
     totalSlideshows: 12,
     totalViews: 1247,

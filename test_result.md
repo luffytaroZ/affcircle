@@ -101,3 +101,86 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Build MVP with 2 core features: 1) Slideshow Generator (text/images → video via Remotion) with 3 themes (Minimal, Corporate, Storytelling) and duration options (15s, 30s, 60s), outputting MP4/GIF. 2) Dashboard Onboarding with Supabase authentication (email/password), user registration/login, and protected dashboard routes."
+
+backend:
+  - task: "Supabase Authentication Setup"
+    implemented: false
+    working: "NA"
+    file: "backend/auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Starting implementation with Supabase URL and Anon key provided"
+
+frontend:
+  - task: "Supabase Client Integration"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/lib/supabase.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to install @supabase/supabase-js and configure client"
+
+  - task: "Authentication Components"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/components/auth/"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Login, Register, and AuthProvider components needed"
+
+  - task: "Dashboard Page"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/pages/Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Protected dashboard page with slideshow management"
+
+  - task: "Slideshow Generator UI"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/components/slideshow/"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Text/image input, theme selection, duration options, preview"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Supabase Client Integration"
+    - "Authentication Components"
+    - "Dashboard Page"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Starting MVP implementation with Supabase auth and slideshow generator. User provided Supabase credentials. Will implement authentication first, then dashboard and slideshow functionality."

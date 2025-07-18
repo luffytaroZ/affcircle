@@ -153,7 +153,7 @@ const SlideshowGenerator = ({ onClose }) => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-gray-900 border border-gray-700 rounded-lg p-8 max-w-2xl w-full mx-4"
+          className="bg-gray-900 border border-gray-700 rounded-lg p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
         >
           <div className="text-center">
             <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -163,6 +163,20 @@ const SlideshowGenerator = ({ onClose }) => {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Slideshow Generated!</h2>
             <p className="text-gray-400 mb-6">Your slideshow has been successfully created</p>
+            
+            {/* Video Player */}
+            {generatedSlideshow.videoUrl && (
+              <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                <video
+                  controls
+                  className="w-full max-w-2xl mx-auto rounded-lg"
+                  poster="/api/placeholder/800/450"
+                >
+                  <source src={generatedSlideshow.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            )}
             
             <div className="bg-gray-800 rounded-lg p-4 mb-6">
               <h3 className="text-lg font-semibold text-white mb-2">{generatedSlideshow.title}</h3>
@@ -181,6 +195,13 @@ const SlideshowGenerator = ({ onClose }) => {
               >
                 Create Another
               </button>
+              <a
+                href={generatedSlideshow.videoUrl}
+                download={`${generatedSlideshow.title}.mp4`}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors inline-block"
+              >
+                Download Video
+              </a>
               <button
                 onClick={onClose}
                 className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors"

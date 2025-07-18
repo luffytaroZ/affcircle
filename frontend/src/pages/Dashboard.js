@@ -350,53 +350,139 @@ const Dashboard = () => {
                 </motion.div>
               )}
 
-            {activeTab === 'create' && (
-              <div className="text-center py-12">
-                <h2 className="text-xl font-semibold mb-4">Create New Slideshow</h2>
-                <p className="text-gray-400 mb-8">Choose how you want to create your slideshow</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                  <motion.div
-                    onClick={() => handleCreateSlideshow('text')}
-                    whileHover={{ scale: 1.05 }}
-                    className="bg-gray-800/50 border border-gray-600 rounded-lg p-6 cursor-pointer hover:border-red-500/50 transition-colors"
-                  >
-                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              {activeTab === 'create' && (
+                <motion.div
+                  key="create"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-6"
+                >
+                  <div className="text-center py-12">
+                    <h2 className="text-3xl font-bold text-white mb-4">Create New Slideshow</h2>
+                    <p className="text-gray-400 mb-12 text-lg">Choose how you want to create your slideshow</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                      <motion.div
+                        onClick={() => handleCreateSlideshow('text')}
+                        whileHover={{ scale: 1.05, y: -10 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="group relative bg-gradient-to-br from-blue-500/20 to-purple-600/20 backdrop-blur-sm border border-blue-500/30 rounded-2xl p-8 cursor-pointer hover:border-blue-400/50 transition-all"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="relative z-10">
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                          </div>
+                          <h3 className="text-2xl font-bold text-white mb-3">Text to Slideshow</h3>
+                          <p className="text-gray-400 mb-6">Convert your text content into engaging video slideshows with AI-powered visuals</p>
+                          <div className="flex items-center justify-center space-x-2 text-blue-400">
+                            <span className="text-sm font-medium">Get Started</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        onClick={() => handleCreateSlideshow('images')}
+                        whileHover={{ scale: 1.05, y: -10 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="group relative bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-8 cursor-pointer hover:border-purple-400/50 transition-all"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="relative z-10">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-2xl font-bold text-white mb-3">Images to Slideshow</h3>
+                          <p className="text-gray-400 mb-6">Upload your images and create beautiful slideshow presentations with smooth transitions</p>
+                          <div className="flex items-center justify-center space-x-2 text-purple-400">
+                            <span className="text-sm font-medium">Get Started</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'analytics' && (
+                <motion.div
+                  key="analytics"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-6"
+                >
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-white mb-2">Text to Slideshow</h3>
-                    <p className="text-gray-400 text-sm">Convert your text content into engaging video slideshows</p>
-                  </motion.div>
-
-                  <motion.div
-                    onClick={() => handleCreateSlideshow('images')}
-                    whileHover={{ scale: 1.05 }}
-                    className="bg-gray-800/50 border border-gray-600 rounded-lg p-6 cursor-pointer hover:border-red-500/50 transition-colors"
-                  >
-                    <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                    <h2 className="text-3xl font-bold text-white mb-4">Analytics Dashboard</h2>
+                    <p className="text-gray-400 mb-8 text-lg">Track your slideshow performance and engagement metrics</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
+                      {[
+                        { title: 'Total Views', value: stats.totalViews, icon: '👁️', trend: '+23%' },
+                        { title: 'Avg. Watch Time', value: '2:34', icon: '⏱️', trend: '+12%' },
+                        { title: 'Engagement Rate', value: '78%', icon: '❤️', trend: '+8%' }
+                      ].map((metric, index) => (
+                        <motion.div
+                          key={metric.title}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6"
+                        >
+                          <div className="text-3xl mb-2">{metric.icon}</div>
+                          <div className="text-2xl font-bold text-white mb-1">{metric.value}</div>
+                          <div className="text-sm text-gray-400 mb-2">{metric.title}</div>
+                          <div className="text-xs text-green-400 font-medium">{metric.trend} this month</div>
+                        </motion.div>
+                      ))}
                     </div>
-                    <h3 className="font-semibold text-white mb-2">Images to Slideshow</h3>
-                    <p className="text-gray-400 text-sm">Upload images and create beautiful slideshow presentations</p>
-                  </motion.div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'analytics' && (
-              <div className="text-center py-12">
-                <h2 className="text-xl font-semibold mb-4">Analytics</h2>
-                <p className="text-gray-400">Track your slideshow performance and engagement metrics</p>
-                <div className="mt-8 text-gray-500">
-                  <p>Analytics coming soon...</p>
-                </div>
-              </div>
-            )}
-          </div>
+                    
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 max-w-2xl mx-auto"
+                    >
+                      <h3 className="text-xl font-bold text-white mb-4">Coming Soon</h3>
+                      <p className="text-gray-400">Advanced analytics features including:</p>
+                      <ul className="mt-4 space-y-2 text-left text-gray-400">
+                        <li className="flex items-center space-x-2">
+                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                          <span>Real-time view tracking</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                          <span>Audience demographics</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                          <span>Performance insights</span>
+                        </li>
+                      </ul>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
       </div>
 

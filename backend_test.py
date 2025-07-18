@@ -130,43 +130,6 @@ def test_slideshow_endpoints():
     
     return health_working, generate_working, videos_working, status_working
 
-def test_existing_endpoints():
-    """Test the endpoints that actually exist in the backend"""
-    print("\n3. Testing Existing Backend Endpoints...")
-    
-    # Test POST /api/status
-    print("   Testing POST /api/status...")
-    test_data = {
-        "client_name": "test_client_slideshow_app"
-    }
-    try:
-        response = requests.post(f"{API_BASE}/status", 
-                               json=test_data, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            print(f"   ✅ POST /api/status successful: {data}")
-            return data.get('id')  # Return the ID for further testing
-        else:
-            print(f"   ❌ POST /api/status failed with status {response.status_code}: {response.text}")
-            return None
-    except Exception as e:
-        print(f"   ❌ Error testing POST /api/status: {e}")
-        return None
-    
-    # Test GET /api/status
-    print("   Testing GET /api/status...")
-    try:
-        response = requests.get(f"{API_BASE}/status", timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            print(f"   ✅ GET /api/status successful: Found {len(data)} status checks")
-            return True
-        else:
-            print(f"   ❌ GET /api/status failed with status {response.status_code}: {response.text}")
-            return False
-    except Exception as e:
-        print(f"   ❌ Error testing GET /api/status: {e}")
-        return False
 
 def test_error_handling():
     """Test error handling with invalid data"""

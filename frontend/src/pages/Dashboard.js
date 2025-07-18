@@ -192,7 +192,7 @@ const Dashboard = () => {
             {[
               { title: 'Total Slideshows', value: stats.totalSlideshows, icon: '🎬', color: 'from-blue-500 to-purple-600', change: '+12%' },
               { title: 'Total Views', value: stats.totalViews, icon: '👁️', color: 'from-green-500 to-teal-600', change: '+23%' },
-              { title: 'Completed Today', value: stats.completedToday, icon: '✅', color: 'from-orange-500 to-red-600', change: '+8%' },
+              { title: 'Total Threads', value: stats.totalThreads, icon: '🧵', color: 'from-orange-500 to-red-600', change: '+15%' },
               { title: 'Processing', value: stats.processingCount, icon: '⏳', color: 'from-purple-500 to-pink-600', change: '-2%' }
             ].map((stat, index) => (
               <motion.div

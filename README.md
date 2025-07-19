@@ -60,8 +60,8 @@ Create a `.env` file in the root directory:
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Optional: Backend URL (falls back to localhost:8001)
-REACT_APP_BACKEND_URL=http://localhost:8001
+# Optional: Backend URL (backend uses dynamic port assignment)
+REACT_APP_BACKEND_URL=http://localhost:PORT
 ```
 
 ### 3. Start Development Servers
@@ -80,7 +80,7 @@ yarn start
 
 The application will be available at:
 - **Frontend**: `http://localhost:3000` (or `http://localhost:3002` if 3000 is busy)
-- **Backend API**: `http://localhost:8001`
+- **Backend API**: `http://localhost:[dynamic-port]` (automatically assigned)
 
 ## 📦 Available Commands
 
@@ -222,7 +222,7 @@ affcircle/
 This error occurs when the backend URL is not properly configured:
 
 **Solution:**
-1. Ensure backend is running on `http://localhost:8001`
+1. Ensure backend is running (check console output for actual port)
 2. Check if `.env` file has `REACT_APP_BACKEND_URL` set
 3. Clear cache and restart:
    ```bash
@@ -231,7 +231,8 @@ This error occurs when the backend URL is not properly configured:
    ```
 
 ### Port Conflicts
-If port 3000 is busy, React will automatically use 3002 or next available port.
+- **Frontend**: If port 3000 is busy, React will automatically use 3002 or next available port.
+- **Backend**: Uses dynamic port assignment - if 8001 is busy, automatically finds next available port.
 
 ### Cache Issues
 Clear all caches if experiencing unexpected behavior:
@@ -248,7 +249,7 @@ rm -rf .eslintcache
 ```
 
 ### Backend Connection Issues
-1. Verify backend is running: `curl http://localhost:8001/api`
+1. Verify backend is running: check console output for port, then test health endpoint
 2. Check for CORS issues in browser console
 3. Ensure environment variables are set correctly
 

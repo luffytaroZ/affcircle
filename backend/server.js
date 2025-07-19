@@ -13,7 +13,8 @@ const OpenAI = require('openai');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 8001;
+const PREFERRED_PORT = process.env.PORT || 8001;
+let BASE_URL = process.env.BASE_URL; // Will be dynamically set if not provided
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -850,7 +851,7 @@ app.post('/api/funnel/:funnelId/publish', async (req, res) => {
     }
 
     // Generate published URL
-    const baseUrl = process.env.BASE_URL || 'https://your-app.com';
+    const baseUrl = BASE_URL || 'https://your-app.com';
     const publishedUrl = subdomain 
       ? `https://${subdomain}.${baseUrl.replace('https://', '')}`
       : `${baseUrl}/f/${funnelId}`;
@@ -1325,9 +1326,43 @@ const authenticateUser = async (req, res, next) => {
 // END SUPABASE AUTHENTICATION API ENDPOINTS
 // ============================================================================
 
+// Function to start server with dynamic port assignment
+function startServer() {
+  const server = app.listen(PREFERRED_PORT, '0.0.0.0', () => {
+    const actualPort = server.address().port;
+    // Set dynamic BASE_URL if not provided in environment
+    if (!BASE_URL) {
+      BASE_URL = `http://localhost:${actualPort}`;
+    }
+    console.log(`✅ Server running on port ${actualPort}`);
+    console.log(`🌍 Access at: http://localhost:${actualPort}`);
+    console.log(`🔗 Base URL: ${BASE_URL}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`Videos directory: ${videosDir}`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`⚠️  Port ${PREFERRED_PORT} is busy, finding available port...`);
+      // Let OS assign available port
+      const fallbackServer = app.listen(0, '0.0.0.0', () => {
+        const actualPort = fallbackServer.address().port;
+        // Set dynamic BASE_URL if not provided in environment
+        if (!BASE_URL) {
+          BASE_URL = `http://localhost:${actualPort}`;
+        }
+        console.log(`✅ Server running on port ${actualPort}`);
+        console.log(`🌍 Access at: http://localhost:${actualPort}`);
+        console.log(`🔗 Base URL: ${BASE_URL}`);
+        console.log(`Environment: ${process.env.NODE_ENV}`);
+        console.log(`Videos directory: ${videosDir}`);
+      });
+    } else {
+      console.error('❌ Server startup error:', err);
+      process.exit(1);
+    }
+  });
+}
+
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`Videos directory: ${videosDir}`);
-});
+startServer();

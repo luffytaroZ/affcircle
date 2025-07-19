@@ -226,6 +226,7 @@ const Dashboard = () => {
           >
             {[
               { id: 'slideshows', label: 'My Slideshows', icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z', count: stats.totalSlideshows },
+              { id: 'funnels', label: 'Funnel Builder', icon: 'M19 14l-7 7m0 0l-7-7m7 7V3', count: stats.totalFunnels },
               { id: 'threads', label: 'Thread Maker', icon: 'M7 8h10m-10 4h4m6 0h-6m2 4h4', count: stats.totalThreads },
               { id: 'create', label: 'Create New', icon: 'M12 4v16m8-8H4', count: null },
               { id: 'analytics', label: 'Analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', count: stats.totalViews },

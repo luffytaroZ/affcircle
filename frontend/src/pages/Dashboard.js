@@ -22,6 +22,7 @@ const Dashboard = () => {
     totalSlideshows: 12,
     totalViews: 1247,
     totalThreads: 8,
+    totalFunnels: 5,
     completedToday: 3,
     processingCount: 1
   })

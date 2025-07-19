@@ -1,87 +1,71 @@
 const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
-const { renderMedia } = require('@remotion/renderer');
-const { bundle } = require('@remotion/bundler');
-const { spawn } = require('child_process');
-const util = require('util');
-const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
+
+// Import configuration
+const { testSupabaseConnection } = require('./config/database');
+const { initRemotionBundle } = require('./config/remotion');
+
+// Import middleware
+const corsMiddleware = require('./middleware/cors');
+
+// Import routes
+const healthRoutes = require('./routes/healthRoutes');
+const videoRoutes = require('./routes/videoRoutes');
+const threadRoutes = require('./routes/threadRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 8001;
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
-// Test Supabase connection
-async function testSupabaseConnection() {
-  try {
-    const { data, error } = await supabase.from('videos').select('count', { count: 'exact' });
-    if (error) throw error;
-    console.log('✅ Connected to Supabase successfully');
-  } catch (error) {
-    console.error('❌ Supabase connection error:', error.message);
-    console.log('Please ensure you have run the migration SQL script in your Supabase dashboard');
-  }
-}
-
-// Test connection on startup
-testSupabaseConnection();
-
 // Middleware
-app.use(cors());
+app.use(corsMiddleware);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files (videos)
 app.use('/videos', express.static(path.join(__dirname, '../videos')));
 
-// Ensure videos directory exists
-const videosDir = path.join(__dirname, '../videos');
-if (!fs.existsSync(videosDir)) {
-  fs.mkdirSync(videosDir, { recursive: true });
-}
-
-// Bundle Remotion project (do this once at startup)
-let bundleLocation;
-const initRemotionBundle = async () => {
-  try {
-    console.log('Bundling Remotion project...');
-    bundleLocation = await bundle({
-      entryPoint: path.join(__dirname, 'remotion/index.ts'),
-      onProgress: (progress) => {
-        console.log(`Bundling progress: ${Math.round(progress * 100)}%`);
-      },
-    });
-    console.log('Remotion bundle created at:', bundleLocation);
-  } catch (error) {
-    console.error('Error bundling Remotion project:', error);
-    process.exit(1);
-  }
-};
-
-// Initialize bundle on startup
-initRemotionBundle();
-
 // API Routes
-app.get('/api', (req, res) => {
-  res.json({ message: 'Slideshow Generator API - Node.js Backend with Supabase' });
-});
+app.use('/api', healthRoutes);
+app.use('/api', videoRoutes);
+app.use('/api', threadRoutes);
+app.use('/api', authRoutes);
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    bundleReady: !!bundleLocation
+// Error handling middleware
+app.use((error, req, res, next) => {
+  console.error('Unhandled error:', error);
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
   });
 });
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Not found',
+    message: `Route ${req.originalUrl} not found`
+  });
+});
+
+// Initialize application
+async function initializeApp() {
+  try {
+    console.log('🚀 Starting AI Content Creator Backend...');
+    
+    // Test database connection
+    await testSupabaseConnection();
+    
+    // Initialize Remotion bundle
+    await initRemotionBundle();
+    
+    console.log('✅ All services initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize application:', error);
+    process.exit(1);
+  }
+}
 
 // Generate slideshow endpoint
 app.post('/api/generate-slideshow', async (req, res) => {

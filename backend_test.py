@@ -306,7 +306,7 @@ class BackendTester:
             
             if create_response.status_code == 200:
                 video_data = create_response.json()
-                video_id = video_data.get('id')
+                video_id = video_data.get('videoId') or video_data.get('id')  # Handle both possible field names
                 
                 if video_id:
                     # Try to retrieve the video

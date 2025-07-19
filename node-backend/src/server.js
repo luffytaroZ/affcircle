@@ -437,7 +437,7 @@ async function generateThreadAsync(threadId, apiKey, topic, style, threadLength,
     const pythonScript = path.join(__dirname, '../llm_service.py');
     const execAsync = util.promisify(require('child_process').exec);
     
-    const command = `python "${pythonScript}" generate_thread "${apiKey}" "${topic}" "${style}" "${threadLength}" "${platform}"`;
+    const command = `cd "${path.dirname(pythonScript)}" && python3 "${pythonScript}" generate_thread "${apiKey}" "${topic}" "${style}" "${threadLength}" "${platform}"`;
     console.log('Executing command:', command);
     
     const { stdout, stderr } = await execAsync(command);

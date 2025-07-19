@@ -457,7 +457,7 @@ async function generateThreadAsync(threadId, apiKey, topic, style, threadLength,
           .from('threads')
           .update({
             status: 'completed',
-            content: result.thread
+            content: result
           })
           .eq('id', threadId);
 

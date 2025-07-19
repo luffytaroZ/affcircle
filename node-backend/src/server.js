@@ -15,6 +15,12 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 8001;
 
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

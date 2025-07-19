@@ -23,8 +23,8 @@ app.use(corsMiddleware);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve static files (videos)
-app.use('/videos', express.static(path.join(__dirname, '../videos')));
+// Serve static files (videos) under /api path for proper routing
+app.use('/api/videos', express.static(path.join(__dirname, '../videos')));
 
 // API Routes
 app.use('/api', healthRoutes);

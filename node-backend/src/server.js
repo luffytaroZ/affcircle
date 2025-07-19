@@ -134,9 +134,13 @@ app.post('/api/generate-slideshow', async (req, res) => {
 app.get('/api/video-status/:videoId', async (req, res) => {
   try {
     const { videoId } = req.params;
-    const video = await db.collection('videos').findOne({ id: videoId });
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', videoId)
+      .single();
 
-    if (!video) {
+    if (error || !video) {
       return res.status(404).json({ error: 'Video not found' });
     }
 
@@ -146,11 +150,11 @@ app.get('/api/video-status/:videoId', async (req, res) => {
       theme: video.theme,
       duration: video.duration,
       status: video.status,
-      createdAt: video.createdAt
+      createdAt: video.created_at
     };
 
-    if (video.status === 'completed' && video.outputLocation) {
-      response.videoUrl = `${req.protocol}://${req.get('host')}/videos/${path.basename(video.outputLocation)}`;
+    if (video.status === 'completed' && video.output_location) {
+      response.videoUrl = `${req.protocol}://${req.get('host')}/videos/${path.basename(video.output_location)}`;
     }
 
     if (video.status === 'failed' && video.error) {

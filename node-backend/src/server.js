@@ -93,22 +93,27 @@ app.post('/api/generate-slideshow', async (req, res) => {
       return res.status(400).json({ error: 'Theme must be one of: minimal, corporate, storytelling, modern, creative, professional, elegant, cinematic' });
     }
 
-    // Create video record in database
+    // Create video record in Supabase
     const videoId = uuidv4();
-    const videoRecord = {
-      id: videoId,
-      title,
-      text: text || '',
-      images: images || [],
-      theme,
-      duration,
-      status: 'processing',
-      createdAt: new Date(),
-      outputLocation: null,
-      error: null
-    };
+    const { data, error } = await supabase
+      .from('videos')
+      .insert([{
+        id: videoId,
+        title,
+        text: text || '',
+        images: images || [],
+        theme,
+        duration,
+        status: 'processing',
+        output_location: null,
+        error: null
+      }])
+      .select();
 
-    await db.collection('videos').insertOne(videoRecord);
+    if (error) {
+      console.error('Error creating video record:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     // Start video generation in background
     generateVideoAsync(videoId, { title, text, images, theme, duration });

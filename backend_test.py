@@ -471,22 +471,28 @@ class BackendTester:
                         # Step 3: Validate thread content
                         content = status_data.get("content")
                         if content:
-                            # Parse content to check if it's actual AI-generated content
-                            if isinstance(content, dict) and "tweets" in content:
-                                tweets = content["tweets"]
-                                if len(tweets) >= 3:  # Should have at least 3 tweets
-                                    # Check if tweets contain actual content (not just placeholders)
-                                    first_tweet = tweets[0].get("content", "")
-                                    if len(first_tweet) > 20 and "AI" in first_tweet and "2025" in first_tweet:
-                                        self.log_test("Thread Content Validation", True, f"Generated {len(tweets)} tweets with relevant AI content")
-                                        self.log_test("Thread Generation Flow", True, f"Complete flow successful - Generated actual AI content about '{test_data['topic']}'")
-                                        return True
+                            # Parse content - it might be a JSON string
+                            try:
+                                if isinstance(content, str):
+                                    content = json.loads(content)
+                                
+                                if isinstance(content, dict) and "tweets" in content:
+                                    tweets = content["tweets"]
+                                    if len(tweets) >= 3:  # Should have at least 3 tweets
+                                        # Check if tweets contain actual content (not just placeholders)
+                                        first_tweet = tweets[0].get("content", "")
+                                        if len(first_tweet) > 20 and ("AI" in first_tweet or "2025" in first_tweet):
+                                            self.log_test("Thread Content Validation", True, f"Generated {len(tweets)} tweets with relevant AI content")
+                                            self.log_test("Thread Generation Flow", True, f"Complete flow successful - Generated actual AI content about '{test_data['topic']}'")
+                                            return True
+                                        else:
+                                            self.log_test("Thread Content Validation", False, f"Content seems generic or placeholder: {first_tweet[:100]}...")
                                     else:
-                                        self.log_test("Thread Content Validation", False, f"Content seems generic or placeholder: {first_tweet[:100]}...")
+                                        self.log_test("Thread Content Validation", False, f"Expected at least 3 tweets, got {len(tweets)}")
                                 else:
-                                    self.log_test("Thread Content Validation", False, f"Expected at least 3 tweets, got {len(tweets)}")
-                            else:
-                                self.log_test("Thread Content Validation", False, f"Content format unexpected: {type(content)}")
+                                    self.log_test("Thread Content Validation", False, f"Content format unexpected: {type(content)}")
+                            except json.JSONDecodeError as e:
+                                self.log_test("Thread Content Validation", False, f"Failed to parse JSON content: {str(e)}")
                         else:
                             self.log_test("Thread Content Validation", False, "No content found in completed thread")
                         

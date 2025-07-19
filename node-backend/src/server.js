@@ -743,6 +743,85 @@ app.delete('/api/funnels/:funnelId', async (req, res) => {
   }
 });
 
+// Preview AI-enhanced slideshow content endpoint
+app.post('/api/preview-slideshow-enhancement', async (req, res) => {
+  try {
+    const { title, text, theme, duration } = req.body;
+
+    // Validate input
+    if (!title || !theme || !duration) {
+      return res.status(400).json({ error: 'Missing required fields: title, theme, duration' });
+    }
+
+    if (![15, 30, 60].includes(duration)) {
+      return res.status(400).json({ error: 'Duration must be 15, 30, or 60 seconds' });
+    }
+
+    if (!['minimal', 'corporate', 'storytelling', 'modern', 'creative', 'professional', 'elegant', 'cinematic'].includes(theme)) {
+      return res.status(400).json({ error: 'Theme must be one of: minimal, corporate, storytelling, modern, creative, professional, elegant, cinematic' });
+    }
+
+    // Get API key from environment
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey || apiKey === 'your_openai_api_key_here') {
+      return res.status(503).json({ 
+        error: 'AI enhancement service unavailable', 
+        message: 'OpenAI API key not configured'
+      });
+    }
+
+    // Call Python LLM service for slideshow enhancement preview
+    const pythonScript = path.join(__dirname, '../llm_service.py');
+    const execAsync = util.promisify(require('child_process').exec);
+    
+    const command = `python "${pythonScript}" enhance_slideshow "${apiKey}" "${title}" "${text || 'null'}" "${theme}" "${duration}"`;
+    console.log('Executing AI enhancement preview command:', command);
+    
+    const { stdout, stderr } = await execAsync(command);
+    
+    if (stderr) {
+      console.error('Python script stderr:', stderr);
+    }
+    
+    console.log('AI enhancement preview output:', stdout);
+    
+    try {
+      const result = JSON.parse(stdout);
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          title: result.title,
+          theme: result.theme,
+          duration: result.duration,
+          original_text: text || '',
+          enhanced_text: result.enhanced_text,
+          slides: result.slides,
+          preview: true,
+          generated_at: result.generated_at
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: 'AI enhancement failed',
+          details: result.error
+        });
+      }
+    } catch (parseError) {
+      console.error('Error parsing AI enhancement result:', parseError);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to parse AI enhancement result'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error in slideshow enhancement preview:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);

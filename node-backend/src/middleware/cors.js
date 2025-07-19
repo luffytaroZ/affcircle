@@ -4,7 +4,7 @@ const cors = require('cors');
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'https://961aa6a1-0e44-4a95-9e4d-2cc18df1b817.preview.emergentagent.com'
+    'https://0479cffc-39cc-422a-9edf-ccaa7628f1b6.preview.emergentagent.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

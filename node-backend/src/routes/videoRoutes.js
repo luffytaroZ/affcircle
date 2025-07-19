@@ -51,7 +51,7 @@ router.get('/video-status/:videoId', async (req, res) => {
       id: video.id,
       title: video.title,
       status: video.status,
-      progress: video.progress || 0,
+      progress: 0, // Default progress since column doesn't exist
       output_url: video.output_location,
       error_message: video.error,
       created_at: video.created_at,

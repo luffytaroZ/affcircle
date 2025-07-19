@@ -18,6 +18,7 @@ router.get('/health', async (req, res) => {
   try {
     const bundleReady = !!getBundleLocation();
     const dbConnected = await testSupabaseConnection();
+    const aiHealthy = await aiService.healthCheck();
     
     const health = {
       status: 'healthy',
@@ -25,14 +26,16 @@ router.get('/health', async (req, res) => {
       services: {
         remotion: bundleReady ? 'ready' : 'bundling',
         database: dbConnected ? 'connected' : 'error',
+        ai: aiHealthy.status === 'healthy' ? 'connected' : 'error',
         server: 'running'
       },
       uptime: process.uptime(),
       memory: process.memoryUsage(),
-      version: '2.0.0'
+      version: '2.0.0',
+      ai_info: aiHealthy
     };
 
-    const overallStatus = bundleReady && dbConnected ? 200 : 503;
+    const overallStatus = bundleReady && dbConnected && aiHealthy.status === 'healthy' ? 200 : 503;
     res.status(overallStatus).json(health);
   } catch (error) {
     res.status(503).json({

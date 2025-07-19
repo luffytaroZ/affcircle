@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getBundleLocation } = require('../config/remotion');
 const { testSupabaseConnection } = require('../config/database');
+const aiService = require('../services/aiService');
 
 // Basic API info
 router.get('/', (req, res) => {

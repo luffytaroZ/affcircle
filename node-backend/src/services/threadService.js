@@ -95,16 +95,15 @@ class ThreadService {
     try {
       const updateData = {
         status,
-        progress,
-        updated_at: new Date().toISOString()
+        progress
       };
 
       if (content) {
-        updateData.content = content;
+        updateData.content = JSON.stringify(content);
       }
 
       if (errorMessage) {
-        updateData.error_message = errorMessage;
+        updateData.error = errorMessage;
       }
 
       await supabase

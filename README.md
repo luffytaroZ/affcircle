@@ -15,6 +15,7 @@ A comprehensive video generation and marketing funnel platform that combines AI-
 ## 🏗️ Architecture
 
 ### Frontend
+
 - **React 19** with modern hooks and concurrent features
 - **Tailwind CSS** for styling
 - **Framer Motion** for animations
@@ -23,6 +24,7 @@ A comprehensive video generation and marketing funnel platform that combines AI-
 - **Supabase** for authentication and data
 
 ### Backend
+
 - **Node.js** with Express server
 - **Remotion** for video rendering
 - **Supabase** integration
@@ -39,6 +41,7 @@ A comprehensive video generation and marketing funnel platform that combines AI-
 ## 🛠️ Quick Start
 
 ### 1. Clone and Install
+
 ```bash
 git clone <repository-url>
 cd affcircle
@@ -55,6 +58,7 @@ cd ..
 ### 2. Environment Setup
 
 Create a `.env` file in the root directory:
+
 ```env
 # Supabase Configuration
 SUPABASE_URL=your_supabase_url
@@ -67,24 +71,56 @@ REACT_APP_BACKEND_URL=http://localhost:PORT
 ### 3. Start Development Servers
 
 **Terminal 1 - Backend:**
+
 ```bash
 cd backend
 node server.js
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 cd frontend
 yarn start
 ```
 
+## 🚀 Development Modes
+
+### Option 1: Coordinated Development (Recommended)
+```bash
+yarn dev:coordinated
+```
+- Automatically starts backend first, detects port
+- Updates frontend configuration with actual backend port
+- Starts frontend after backend is ready
+- Provides real-time connection status monitoring
+
+### Option 2: Manual Development
+```bash
+# Terminal 1 - Backend
+yarn start
+# Note the port from console output
+
+# Terminal 2 - Frontend  
+cd frontend
+yarn start
+```
+
 The application will be available at:
-- **Frontend**: `http://localhost:3000` (or `http://localhost:3002` if 3000 is busy)
-- **Backend API**: `http://localhost:[dynamic-port]` (automatically assigned)
+- **Frontend**: `http://localhost:3000` (or next available port)
+- **Backend API**: `http://localhost:[dynamic-port]` (check console output)
+
+## 🔗 Connection Health Monitoring
+
+The frontend automatically monitors backend connection status and displays:
+- ✅ **Connected**: Green indicator with port info
+- ⚠️ **Connecting**: Blue loading indicator
+- ❌ **Disconnected**: Red alert with troubleshooting steps
 
 ## 📦 Available Commands
 
 ### Root Level Commands
+
 ```bash
 # Install all dependencies
 yarn install
@@ -94,6 +130,7 @@ yarn cache clean
 ```
 
 ### Frontend Commands
+
 ```bash
 cd frontend
 
@@ -111,6 +148,7 @@ rm -rf node_modules/.cache && rm -rf .eslintcache
 ```
 
 ### Backend Commands
+
 ```bash
 cd backend
 
@@ -124,6 +162,7 @@ yarn install
 ## 🔧 Development Workflow
 
 ### Starting Fresh Development Session
+
 ```bash
 # 1. Clean slate setup
 yarn cache clean
@@ -140,6 +179,7 @@ cd frontend && yarn start
 ```
 
 ### Cache Issues? Clear Everything
+
 ```bash
 # Clear yarn cache
 yarn cache clean
@@ -158,6 +198,7 @@ yarn start
 The platform supports multiple video themes:
 
 ### Available Themes
+
 - **Corporate**: Professional business presentations
 - **Minimal**: Clean, minimalist design
 - **Storytelling**: Narrative-focused layouts
@@ -168,6 +209,7 @@ The platform supports multiple video themes:
 - **Cinematic**: Movie-like presentations
 
 ### Remotion Integration
+
 Videos are generated using Remotion compositions located in:
 - `backend/remotion/compositions/CorporateTheme.tsx`
 - `backend/remotion/compositions/MinimalTheme.tsx`  
@@ -176,6 +218,7 @@ Videos are generated using Remotion compositions located in:
 ## 🔧 Key Components
 
 ### Frontend Components
+
 - **AuthModal**: User authentication interface
 - **FunnelBuilder**: Visual funnel creation tool
 - **VideoEditor**: Video editing interface
@@ -186,6 +229,7 @@ Videos are generated using Remotion compositions located in:
 - **Navigation**: Main navigation component
 
 ### Pages
+
 - **Dashboard**: Main user interface
 - **DemoMode**: Feature demonstration without auth
 
@@ -219,23 +263,28 @@ affcircle/
 ## 🚨 Troubleshooting
 
 ### "Failed to generate slideshow: Failed to fetch"
+
 This error occurs when the backend URL is not properly configured:
 
 **Solution:**
 1. Ensure backend is running (check console output for actual port)
 2. Check if `.env` file has `REACT_APP_BACKEND_URL` set
 3. Clear cache and restart:
+
    ```bash
    yarn cache clean
    cd frontend && rm -rf node_modules/.cache && yarn start
    ```
 
 ### Port Conflicts
+
 - **Frontend**: If port 3000 is busy, React will automatically use 3002 or next available port.
 - **Backend**: Uses dynamic port assignment - if 8001 is busy, automatically finds next available port.
 
 ### Cache Issues
+
 Clear all caches if experiencing unexpected behavior:
+
 ```bash
 # Clear yarn cache
 yarn cache clean
@@ -249,20 +298,48 @@ rm -rf .eslintcache
 ```
 
 ### Backend Connection Issues
-1. Verify backend is running: check console output for port, then test health endpoint
-2. Check for CORS issues in browser console
-3. Ensure environment variables are set correctly
+
+#### Quick Fix (Recommended)
+```bash
+yarn dev:coordinated
+```
+This will automatically coordinate both servers and handle port conflicts.
+
+#### Manual Troubleshooting
+1. **Check Backend Status**:
+   ```bash
+   # Check if backend is running
+   yarn start
+   # Look for: "✅ Server running on port XXXX"
+   ```
+
+2. **Test Backend Health**:
+   ```bash
+   # Replace XXXX with actual port from step 1
+   curl http://localhost:XXXX/api/health
+   ```
+
+3. **Update Frontend Config**:
+   ```bash
+   # In frontend/.env, set:
+   REACT_APP_BACKEND_URL=http://localhost:XXXX
+   ```
+
+4. **Check Connection Status**: The frontend displays real-time connection status with troubleshooting tips.
 
 ## 🚀 Deployment
 
 ### Frontend Build
+
 ```bash
 cd frontend
 yarn build
 ```
 
 ### Backend Deployment
+
 Ensure all environment variables are set in your production environment:
+
 ```bash
 cd backend
 node server.js
@@ -271,16 +348,19 @@ node server.js
 ## 🔍 API Endpoints
 
 ### Video Generation
+
 - `POST /api/generate-slideshow` - Create new slideshow
 - `GET /api/video-status/:id` - Check video generation status
 - `GET /api/videos` - List all videos
 
 ### Thread Generation  
+
 - `POST /api/generate-thread` - Create social media thread
 - `GET /api/threads` - List all threads
 - `GET /api/thread-status/:id` - Check thread status
 
 ### Funnel Management
+
 - `GET /api/funnels` - List all funnels
 - `POST /api/create-funnel` - Create new funnel
 - `PUT /api/funnel/:id` - Update funnel

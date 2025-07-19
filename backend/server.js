@@ -14,7 +14,8 @@ require('dotenv').config();
 
 const app = express();
 const PREFERRED_PORT = process.env.PORT || 8001;
-let BASE_URL = process.env.BASE_URL; // Will be dynamically set if not provided
+let BASE_URL = process.env.BASE_URL; // Will be dynamically updated for localhost
+let SERVER_PORT = null; // Track the actual server port
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -277,12 +278,35 @@ async function generateVideoAsync(videoId, videoData) {
   }
 }
 
-// Health check endpoint
+// Enhanced health check with connection info
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    bundleReady: !!bundleLocation
+    port: SERVER_PORT,
+    baseUrl: BASE_URL,
+    environment: process.env.NODE_ENV || 'development',
+    bundleReady: !!bundleLocation,
+    supabaseConnected: !!supabase,
+    endpoints: {
+      health: `/api/health`,
+      videos: `/api/videos`,
+      funnels: `/api/funnels`,
+      auth: `/api/auth/profile`
+    }
+  });
+});
+
+// Connection status endpoint for frontend monitoring
+app.get('/api/connection-status', (req, res) => {
+  res.json({
+    status: 'connected',
+    serverPort: SERVER_PORT,
+    serverUrl: `http://localhost:${SERVER_PORT}`,
+    baseUrl: BASE_URL,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    version: '1.0.0'
   });
 });
 
@@ -1330,10 +1354,13 @@ const authenticateUser = async (req, res, next) => {
 function startServer() {
   const server = app.listen(PREFERRED_PORT, '0.0.0.0', () => {
     const actualPort = server.address().port;
-    // Set dynamic BASE_URL if not provided in environment
-    if (!BASE_URL) {
+    SERVER_PORT = actualPort;
+    
+    // Update BASE_URL if it's localhost or not set
+    if (!BASE_URL || BASE_URL.includes('localhost')) {
       BASE_URL = `http://localhost:${actualPort}`;
     }
+    
     console.log(`✅ Server running on port ${actualPort}`);
     console.log(`🌍 Access at: http://localhost:${actualPort}`);
     console.log(`🔗 Base URL: ${BASE_URL}`);
@@ -1347,10 +1374,13 @@ function startServer() {
       // Let OS assign available port
       const fallbackServer = app.listen(0, '0.0.0.0', () => {
         const actualPort = fallbackServer.address().port;
-        // Set dynamic BASE_URL if not provided in environment
-        if (!BASE_URL) {
+        SERVER_PORT = actualPort;
+        
+        // Update BASE_URL if it's localhost or not set
+        if (!BASE_URL || BASE_URL.includes('localhost')) {
           BASE_URL = `http://localhost:${actualPort}`;
         }
+        
         console.log(`✅ Server running on port ${actualPort}`);
         console.log(`🌍 Access at: http://localhost:${actualPort}`);
         console.log(`🔗 Base URL: ${BASE_URL}`);

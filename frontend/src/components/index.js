@@ -7,6 +7,7 @@ export { default as Footer } from './Footer';
 
 // App components
 export { default as AuthModal } from './AuthModal';
+export { default as ConnectionStatus } from './ConnectionStatus';
 export { default as FunnelBuilder } from './FunnelBuilder';
 export { default as ProtectedRoute } from './ProtectedRoute';
 export { default as SlideshowGenerator } from './SlideshowGenerator';

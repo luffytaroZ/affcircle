@@ -7,6 +7,7 @@ import UserProfile from '../components/UserProfile'
 import VideoAnalytics from '../components/VideoAnalytics'
 import VideoEditor from '../components/VideoEditor'
 import FunnelBuilder from '../components/FunnelBuilder'
+import ConnectionStatus from '../components/ConnectionStatus'
 
 const Dashboard = () => {
   const { user, signOut } = useAuth()
@@ -96,6 +97,11 @@ const Dashboard = () => {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        {/* Connection Status - Dashboard specific */}
+        <div className="p-4 pb-0">
+          <ConnectionStatus />
+        </div>
+        
         {/* Header */}
         <motion.div 
           initial={{ y: -50, opacity: 0 }}

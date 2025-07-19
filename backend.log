@@ -1,0 +1,16 @@
+Bundling Remotion project...
+Server running on port 8001
+Environment: development
+Videos directory: /Users/luffy/Downloads/affcircle/backend/videos
+Bundling progress: 600%
+Bundling progress: 2375%
+Bundling progress: 6500%
+Bundling progress: 7064%
+Bundling progress: 7577%
+Bundling progress: 8090%
+Bundling progress: 8731%
+Bundling progress: 9244%
+Bundling progress: 9800%
+Bundling progress: 10000%
+Remotion bundle created at: /var/folders/q4/k9lcrlf94kqbhjwp0xw9b3xr0000gn/T/remotion-webpack-bundle-mFP1Iu
+✅ Connected to Supabase PostgreSQL

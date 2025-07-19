@@ -7,7 +7,11 @@
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
     "build": "npm run build:remotion",
-    "build:remotion": "npx remotion bundle backend/remotion/index.ts --bundle-dir=dist/remotion"
+    "build:remotion": "npx remotion bundle backend/remotion/index.ts --bundle-dir=dist/remotion",
+    "dev:coordinated": "node start-dev.js",
+    "dev:full": "concurrently \"npm run dev\" \"cd frontend && yarn start\" --names \"backend,frontend\" --prefix-colors \"cyan,magenta\"",
+    "install:all": "yarn install && cd frontend && yarn install",
+    "check:connection": "node -e \"fetch('http://localhost:8001/api/health').then(r=>r.json()).then(d=>console.log('✅ Backend:', d)).catch(()=>console.log('❌ Backend not running'))\""
   },
   "dependencies": {
     "@remotion/cli": "^4.0.324",
@@ -34,6 +38,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/uuid": "^9.0.0",
+    "concurrently": "^8.2.0",
     "nodemon": "^3.0.2"
   },
   "engines": {

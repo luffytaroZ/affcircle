@@ -10,7 +10,8 @@ import {
   Hero,
   CountdownTimer,
   DashboardPreview,
-  Footer
+  Footer,
+  ConnectionStatus
 } from "./components";
 
 function App() {
@@ -18,6 +19,10 @@ function App() {
     <AuthProvider>
       <div className="App bg-black text-white min-h-screen">
         <BrowserRouter>
+          {/* Connection Status - Shows on all pages */}
+          <div className="fixed top-4 right-4 z-50 w-96">
+            <ConnectionStatus />
+          </div>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/demo" element={<DemoMode />} />

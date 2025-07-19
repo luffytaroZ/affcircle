@@ -890,6 +890,225 @@ function getTemplateData(template) {
 // END FUNNELS BUILDER API ENDPOINTS
 // ============================================================================
 
+// ============================================================================
+// SUPABASE AUTHENTICATION API ENDPOINTS
+// ============================================================================
+
+// Register endpoint
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Register user with Supabase
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({
+      message: 'Registration successful! Please check your email for verification.',
+      user: data.user,
+      session: data.session
+    });
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Internal server error during registration' });
+  }
+});
+
+// Login endpoint
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Sign in user with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return res.status(401).json({ error: error.message });
+    }
+
+    res.json({
+      message: 'Login successful',
+      user: data.user,
+      session: data.session
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error during login' });
+  }
+});
+
+// Logout endpoint
+app.post('/api/auth/logout', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization header provided' });
+    }
+
+    // Get the access token from Authorization header
+    const accessToken = authHeader.replace('Bearer ', '');
+    
+    // Sign out user
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({ message: 'Logout successful' });
+
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Internal server error during logout' });
+  }
+});
+
+// Get user profile endpoint
+app.get('/api/auth/profile', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization header provided' });
+    }
+
+    const accessToken = authHeader.replace('Bearer ', '');
+    
+    // Get user from token
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+
+    if (error || !user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        email_verified: user.email_confirmed_at ? true : false,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        app_metadata: user.app_metadata,
+        user_metadata: user.user_metadata
+      }
+    });
+
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    res.status(500).json({ error: 'Internal server error while fetching profile' });
+  }
+});
+
+// Password reset endpoint
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${req.headers.origin || 'http://localhost:3000'}/reset-password`
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({ 
+      message: 'Password reset email sent. Please check your email for further instructions.' 
+    });
+
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.status(500).json({ error: 'Internal server error during password reset' });
+  }
+});
+
+// Update password endpoint
+app.put('/api/auth/update-password', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization header provided' });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    const accessToken = authHeader.replace('Bearer ', '');
+
+    // Update password
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({ message: 'Password updated successfully' });
+
+  } catch (error) {
+    console.error('Password update error:', error);
+    res.status(500).json({ error: 'Internal server error during password update' });
+  }
+});
+
+// Middleware for protecting routes
+const authenticateUser = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization header provided' });
+    }
+
+    const accessToken = authHeader.replace('Bearer ', '');
+    
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+
+    if (error || !user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Authentication middleware error:', error);
+    res.status(500).json({ error: 'Authentication error' });
+  }
+};
+
+// ============================================================================
+// END SUPABASE AUTHENTICATION API ENDPOINTS
+// ============================================================================
+
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);

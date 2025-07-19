@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 class AIService {
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
+    const orgId = process.env.OPENAI_ORG_ID;
     
     if (!apiKey) {
       console.warn('⚠️ OPENAI_API_KEY not found in environment variables');
@@ -18,10 +19,16 @@ class AIService {
       this.openai = null;
     } else {
       try {
-        this.openai = new OpenAI({
+        const config = {
           apiKey: apiKey.trim(), // Trim any whitespace
-        });
-        console.log('✅ OpenAI client initialized successfully');
+        };
+        
+        if (orgId) {
+          config.organization = orgId.trim();
+        }
+        
+        this.openai = new OpenAI(config);
+        console.log(`✅ OpenAI client initialized successfully${orgId ? ' with organization: ' + orgId : ''}`);
       } catch (error) {
         console.error('❌ Failed to initialize OpenAI client:', error.message);
         this.openai = null;

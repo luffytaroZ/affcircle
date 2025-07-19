@@ -35,6 +35,14 @@ async function testSupabaseConnection() {
 // Test connection on startup
 testSupabaseConnection();
 
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files (videos)
+app.use('/videos', express.static(path.join(__dirname, '../videos')));
+
 // Ensure videos directory exists
 const videosDir = path.join(__dirname, '../videos');
 if (!fs.existsSync(videosDir)) {

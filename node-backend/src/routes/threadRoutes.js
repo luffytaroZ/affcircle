@@ -52,7 +52,7 @@ router.get('/thread-status/:threadId', async (req, res) => {
       style: thread.style,
       platform: thread.platform,
       status: thread.status,
-      progress: thread.progress || 0,
+      progress: 0, // Default progress since column doesn't exist
       content: thread.content,
       error_message: thread.error,
       created_at: thread.created_at,

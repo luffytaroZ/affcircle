@@ -236,6 +236,72 @@ Make each slide impactful, visually descriptive, and aligned with the ${theme} t
   }
 
   /**
+   * Fallback thread generation when OpenAI is not available
+   */
+  _generateFallbackThread(topic, style, threadLength, platform) {
+    const templates = {
+      engaging: [
+        `🧵 Let's talk about ${topic} - here's what you need to know:`,
+        `🔥 Here's an interesting take on ${topic}:`,
+        `💡 Key insights about ${topic}:`,
+        `🚀 Ready to explore ${topic}? Let's dive in:`,
+        `What are your thoughts on this?`
+      ],
+      educational: [
+        `📚 Understanding ${topic}: A comprehensive guide`,
+        `🎓 Let me break down ${topic} for you:`,
+        `📖 Here are the essential facts about ${topic}:`,
+        `🧠 Knowledge is power - let's learn about ${topic}:`,
+        `What would you like to know more about?`
+      ],
+      professional: [
+        `📊 Industry analysis: ${topic}`,
+        `🏢 Professional insights on ${topic}:`,
+        `📈 Market perspective on ${topic}:`,
+        `💼 Business implications of ${topic}:`,
+        `Share your professional experience with this topic.`
+      ]
+    };
+
+    const styleTemplates = templates[style] || templates.engaging;
+    const tweets = [];
+
+    for (let i = 0; i < threadLength; i++) {
+      const isFirst = i === 0;
+      const isLast = i === threadLength - 1;
+      
+      let content;
+      if (isFirst) {
+        content = styleTemplates[0] || `Thread about ${topic} (${i + 1}/${threadLength})`;
+      } else if (isLast) {
+        content = styleTemplates[styleTemplates.length - 1] || `Thanks for reading this thread about ${topic}! (${i + 1}/${threadLength})`;
+      } else {
+        content = styleTemplates[Math.min(i, styleTemplates.length - 2)] || `Point ${i} about ${topic} (${i + 1}/${threadLength})`;
+      }
+
+      tweets.push({
+        post_number: i + 1,
+        content: content,
+        character_count: content.length,
+        word_count: content.split(' ').length
+      });
+    }
+
+    return {
+      success: true,
+      topic,
+      style,
+      platform,
+      thread_length: tweets.length,
+      tweets,
+      generated_at: new Date().toISOString(),
+      session_id: `fallback_${uuidv4().substring(0, 8)}`,
+      source: 'fallback',
+      note: 'Generated using fallback templates - AI service not available'
+    };
+  }
+
+  /**
    * Parse thread response into structured tweets
    */
   _parseThreadResponse(response, expectedLength) {

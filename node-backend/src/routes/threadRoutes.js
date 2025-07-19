@@ -54,7 +54,7 @@ router.get('/thread-status/:threadId', async (req, res) => {
       status: thread.status,
       progress: thread.progress || 0,
       content: thread.content,
-      error_message: thread.error_message,
+      error_message: thread.error,
       created_at: thread.created_at,
       updated_at: thread.updated_at
     });

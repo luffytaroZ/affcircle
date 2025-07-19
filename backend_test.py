@@ -143,10 +143,11 @@ class BackendTester:
             
             if response.status_code == 200:
                 result = response.json()
-                video_id = result.get('id')
+                video_id = result.get('videoId') or result.get('id')  # Handle both possible field names
+                status = result.get('status')
                 
                 if video_id:
-                    self.log_test("Slideshow Generation", True, f"Created video ID: {video_id}")
+                    self.log_test("Slideshow Generation", True, f"Created video ID: {video_id}, Status: {status}")
                     return video_id
                 else:
                     self.log_test("Slideshow Generation", False, "No video ID returned", str(result))

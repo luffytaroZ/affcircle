@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const { MongoClient } = require('mongodb');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
@@ -10,6 +9,7 @@ const { bundle } = require('@remotion/bundler');
 const { spawn } = require('child_process');
 const util = require('util');
 const { createClient } = require('@supabase/supabase-js');
+const OpenAI = require('openai');
 require('dotenv').config();
 
 const app = express();
@@ -21,32 +21,27 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
+// Test Supabase connection
+(async () => {
+  try {
+    const { data, error } = await supabase.from('videos').select('*').limit(1);
+    if (error) throw error;
+    console.log('✅ Connected to Supabase PostgreSQL');
+  } catch (error) {
+    console.error('❌ Supabase connection error:', error.message);
+  }
+})();
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files (videos)
-app.use('/videos', express.static(path.join(__dirname, '../videos')));
-
-// MongoDB connection
-let db;
-const mongoUrl = process.env.MONGO_URL;
-const dbName = process.env.DB_NAME;
-
-// Connect to MongoDB
-MongoClient.connect(mongoUrl)
-  .then(client => {
-    console.log('Connected to MongoDB');
-    db = client.db(dbName);
-  })
-  .catch(error => {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  });
+app.use('/videos', express.static(path.join(__dirname, 'videos')));
 
 // Ensure videos directory exists
-const videosDir = path.join(__dirname, '../videos');
+const videosDir = path.join(__dirname, 'videos');
 if (!fs.existsSync(videosDir)) {
   fs.mkdirSync(videosDir, { recursive: true });
 }
@@ -98,19 +93,26 @@ app.post('/api/generate-slideshow', async (req, res) => {
     // Create video record in database
     const videoId = uuidv4();
     const videoRecord = {
-      id: videoId,
+      video_id: videoId,
       title,
       text: text || '',
       images: images || [],
       theme,
       duration,
       status: 'processing',
-      createdAt: new Date(),
-      outputLocation: null,
+      output_location: null,
       error: null
     };
 
-    await db.collection('videos').insertOne(videoRecord);
+    const { data, error: insertError } = await supabase
+      .from('videos')
+      .insert([videoRecord])
+      .select();
+
+    if (insertError) {
+      console.error('Error creating video record:', insertError);
+      return res.status(500).json({ error: 'Failed to create video record' });
+    }
 
     // Start video generation in background
     generateVideoAsync(videoId, { title, text, images, theme, duration });
@@ -131,23 +133,27 @@ app.post('/api/generate-slideshow', async (req, res) => {
 app.get('/api/video-status/:videoId', async (req, res) => {
   try {
     const { videoId } = req.params;
-    const video = await db.collection('videos').findOne({ id: videoId });
+    const { data: video, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('video_id', videoId)
+      .single();
 
-    if (!video) {
+    if (error || !video) {
       return res.status(404).json({ error: 'Video not found' });
     }
 
     const response = {
-      id: video.id,
+      id: video.video_id,
       title: video.title,
       theme: video.theme,
       duration: video.duration,
       status: video.status,
-      createdAt: video.createdAt
+      createdAt: video.created_at
     };
 
-    if (video.status === 'completed' && video.outputLocation) {
-      response.videoUrl = `${req.protocol}://${req.get('host')}/videos/${path.basename(video.outputLocation)}`;
+    if (video.status === 'completed' && video.output_location) {
+      response.videoUrl = `${req.protocol}://${req.get('host')}/videos/${path.basename(video.output_location)}`;
     }
 
     if (video.status === 'failed' && video.error) {
@@ -165,21 +171,26 @@ app.get('/api/video-status/:videoId', async (req, res) => {
 // Get all videos endpoint
 app.get('/api/videos', async (req, res) => {
   try {
-    const videos = await db.collection('videos')
-      .find({})
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .toArray();
+    const { data: videos, error } = await supabase
+      .from('videos')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error('Error fetching videos:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
 
     const videosWithUrls = videos.map(video => ({
-      id: video.id,
+      id: video.video_id,
       title: video.title,
       theme: video.theme,
       duration: video.duration,
       status: video.status,
-      createdAt: video.createdAt,
-      videoUrl: video.status === 'completed' && video.outputLocation
-        ? `${req.protocol}://${req.get('host')}/videos/${path.basename(video.outputLocation)}`
+      createdAt: video.created_at,
+      videoUrl: video.status === 'completed' && video.output_location
+        ? `${req.protocol}://${req.get('host')}/videos/${path.basename(video.output_location)}`
         : null
     }));
 
@@ -231,16 +242,18 @@ async function generateVideoAsync(videoId, videoData) {
     });
 
     // Update database with success
-    await db.collection('videos').updateOne(
-      { id: videoId },
-      {
-        $set: {
-          status: 'completed',
-          outputLocation: outputPath,
-          completedAt: new Date()
-        }
-      }
-    );
+    const { error: updateError } = await supabase
+      .from('videos')
+      .update({
+        status: 'completed',
+        output_location: outputPath,
+        completed_at: new Date().toISOString()
+      })
+      .eq('video_id', videoId);
+
+    if (updateError) {
+      console.error(`Error updating video ${videoId} status:`, updateError);
+    }
 
     console.log(`Video generation completed for ID: ${videoId}`);
 
@@ -248,16 +261,18 @@ async function generateVideoAsync(videoId, videoData) {
     console.error(`Error generating video ${videoId}:`, error);
     
     // Update database with error
-    await db.collection('videos').updateOne(
-      { id: videoId },
-      {
-        $set: {
-          status: 'failed',
-          error: error.message,
-          failedAt: new Date()
-        }
-      }
-    );
+    const { error: updateError } = await supabase
+      .from('videos')
+      .update({
+        status: 'failed',
+        error: error.message,
+        failed_at: new Date().toISOString()
+      })
+      .eq('video_id', videoId);
+
+    if (updateError) {
+      console.error(`Error updating video ${videoId} status:`, updateError);
+    }
   }
 }
 
@@ -274,40 +289,168 @@ app.get('/api/health', (req, res) => {
 // THREAD MAKER API ENDPOINTS
 // ============================================================================
 
-// Helper function to call Python LLM service
-async function callLLMService(command, ...args) {
-  return new Promise((resolve, reject) => {
-    const pythonProcess = spawn('python3', [
-      path.join(__dirname, '../llm_service.py'),
-      command,
-      ...args
-    ]);
+// OpenAI integration for Thread Maker
+async function generateThreadWithOpenAI(apiKey, topic, style, threadLength, platform) {
+  try {
+    const openai = new OpenAI({ apiKey });
 
-    let output = '';
-    let errorOutput = '';
+    // Platform-specific character limits and formatting
+    const platformConfig = {
+      'twitter': { charLimit: 280, format: 'tweet' },
+      'linkedin': { charLimit: 3000, format: 'linkedin post' },
+      'instagram': { charLimit: 2200, format: 'instagram post' }
+    };
 
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString();
+    const config = platformConfig[platform] || platformConfig['twitter'];
+
+    // Style-specific prompts
+    const stylePrompts = {
+      'engaging': 'Create an engaging, conversational thread that encourages interaction',
+      'educational': 'Create an educational thread that teaches and informs',
+      'storytelling': 'Create a narrative thread that tells a compelling story',
+      'professional': 'Create a professional, business-focused thread',
+      'viral': 'Create a shareable, viral-worthy thread with hooks and engaging content'
+    };
+
+    const styleInstruction = stylePrompts[style] || stylePrompts['engaging'];
+
+    // Construct the prompt
+    const prompt = `${styleInstruction} about "${topic}" for ${platform}.
+
+Requirements:
+- Create exactly ${threadLength} posts in the thread
+- Each post should be under ${config.charLimit} characters
+- Use ${platform} best practices and formatting
+- Include relevant hashtags if appropriate
+- Make each post engaging and valuable
+- Ensure the thread flows logically from post to post
+- Add hooks and call-to-actions where appropriate
+
+Format the response as a JSON object with this structure:
+{
+  "success": true,
+  "tweets": [
+    {
+      "content": "Post content here",
+      "character_count": 150
+    }
+  ]
+}
+
+Topic: ${topic}
+Style: ${style}
+Platform: ${platform}
+Thread Length: ${threadLength}`;
+
+    // Make API call to OpenAI
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert social media content creator specializing in viral threads and engaging content. Always respond with valid JSON only."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
     });
 
-    pythonProcess.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-    });
+    const content = response.choices[0].message.content;
 
-    pythonProcess.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`Python service failed: ${errorOutput}`));
-        return;
+    // Try to extract JSON from the response
+    try {
+      // Find JSON content in the response
+      const start = content.indexOf('{');
+      const end = content.lastIndexOf('}') + 1;
+      const jsonContent = content.slice(start, end);
+
+      const result = JSON.parse(jsonContent);
+
+      // Ensure all required fields are present
+      if (!result.tweets || !Array.isArray(result.tweets)) {
+        throw new Error("No tweets found in response");
       }
 
-      try {
-        const result = JSON.parse(output);
-        resolve(result);
-      } catch (error) {
-        reject(new Error(`Failed to parse LLM service response: ${error.message}`));
+      // Add session metadata
+      result.generated_at = new Date().toISOString();
+      result.session_id = uuidv4();
+      result.topic = topic;
+      result.style = style;
+      result.platform = platform;
+
+      // Validate and correct character counts
+      result.tweets.forEach(tweet => {
+        tweet.character_count = tweet.content.length;
+      });
+
+      return result;
+
+    } catch (jsonError) {
+      // Fallback: create a simple thread if JSON parsing fails
+      const lines = content.trim().split('\n').filter(line => line.trim());
+      const tweets = [];
+
+      for (let i = 0; i < Math.min(lines.length, threadLength); i++) {
+        const line = lines[i];
+        if (line && line.length > 10) {
+          const tweetContent = line.replace(/^\d+[.)]\s*/, '').trim();
+          if (tweetContent.length > 10) {
+            tweets.push({
+              content: tweetContent.slice(0, config.charLimit),
+              character_count: Math.min(tweetContent.length, config.charLimit)
+            });
+          }
+        }
       }
-    });
-  });
+
+      // If no tweets found, generate a basic thread
+      if (tweets.length === 0) {
+        for (let i = 0; i < threadLength; i++) {
+          const content = i === 0 
+            ? `🧵 Let's talk about ${topic}...`
+            : `Key point ${i} about ${topic} - this is important to understand.`;
+          tweets.push({
+            content,
+            character_count: content.length
+          });
+        }
+      }
+
+      return {
+        success: true,
+        tweets: tweets.slice(0, threadLength),
+        generated_at: new Date().toISOString(),
+        session_id: uuidv4(),
+        topic,
+        style,
+        platform
+      };
+    }
+
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    
+    if (error.code === 'invalid_api_key') {
+      return {
+        success: false,
+        error: "Invalid OpenAI API key. Please check your API key configuration."
+      };
+    } else if (error.code === 'rate_limit_exceeded') {
+      return {
+        success: false,
+        error: "OpenAI API rate limit exceeded. Please try again later."
+      };
+    } else {
+      return {
+        success: false,
+        error: `Thread generation failed: ${error.message}`
+      };
+    }
+  }
 }
 
 // Generate Thread endpoint
@@ -342,15 +485,22 @@ app.post('/api/generate-thread', async (req, res) => {
     const threadId = uuidv4();
 
     // Create thread record in database
-    await db.collection('threads').insertOne({
-      id: threadId,
-      topic,
-      style,
-      thread_length,
-      platform,
-      status: 'generating',
-      createdAt: new Date()
-    });
+    const { data, error: insertError } = await supabase
+      .from('threads')
+      .insert([{
+        thread_id: threadId,
+        topic,
+        style,
+        thread_length,
+        platform,
+        status: 'generating'
+      }])
+      .select();
+
+    if (insertError) {
+      console.error('Error creating thread record:', insertError);
+      return res.status(500).json({ error: 'Failed to create thread record' });
+    }
 
     // Generate thread in background
     generateThreadAsync(threadId, apiKey, topic, style, thread_length, platform);
@@ -373,9 +523,13 @@ app.get('/api/thread-status/:threadId', async (req, res) => {
   try {
     const { threadId } = req.params;
 
-    const thread = await db.collection('threads').findOne({ id: threadId });
+    const { data: thread, error } = await supabase
+      .from('threads')
+      .select('*')
+      .eq('thread_id', threadId)
+      .single();
     
-    if (!thread) {
+    if (error || !thread) {
       return res.status(404).json({ error: 'Thread not found' });
     }
 
@@ -390,11 +544,16 @@ app.get('/api/thread-status/:threadId', async (req, res) => {
 // Get All Threads endpoint
 app.get('/api/threads', async (req, res) => {
   try {
-    const threads = await db.collection('threads')
-      .find({})
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .toArray();
+    const { data: threads, error } = await supabase
+      .from('threads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error('Error fetching threads:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
 
     res.json({ threads });
 
@@ -409,9 +568,13 @@ app.delete('/api/thread/:threadId', async (req, res) => {
   try {
     const { threadId } = req.params;
 
-    const result = await db.collection('threads').deleteOne({ id: threadId });
+    const { data, error } = await supabase
+      .from('threads')
+      .delete()
+      .eq('thread_id', threadId)
+      .select();
     
-    if (result.deletedCount === 0) {
+    if (error || !data || data.length === 0) {
       return res.status(404).json({ error: 'Thread not found' });
     }
 
@@ -423,49 +586,46 @@ app.delete('/api/thread/:threadId', async (req, res) => {
   }
 });
 
-// Background thread generation
+// Background thread generation using Node.js OpenAI
 async function generateThreadAsync(threadId, apiKey, topic, style, threadLength, platform) {
   try {
     console.log(`Generating thread ${threadId}...`);
 
-    // Call Python LLM service
-    const result = await callLLMService(
-      'generate_thread',
-      apiKey,
-      topic,
-      style,
-      threadLength.toString(),
-      platform
-    );
+    // Call Node.js OpenAI service
+    const result = await generateThreadWithOpenAI(apiKey, topic, style, threadLength, platform);
 
     if (result.success) {
       // Update database with generated thread
-      await db.collection('threads').updateOne(
-        { id: threadId },
-        {
-          $set: {
-            status: 'completed',
-            tweets: result.tweets,
-            generated_at: result.generated_at,
-            session_id: result.session_id,
-            completedAt: new Date()
-          }
-        }
-      );
+      const { error: updateError } = await supabase
+        .from('threads')
+        .update({
+          status: 'completed',
+          tweets: result.tweets,
+          generated_at: result.generated_at,
+          session_id: result.session_id,
+          completed_at: new Date().toISOString()
+        })
+        .eq('thread_id', threadId);
+
+      if (updateError) {
+        console.error(`Error updating thread ${threadId} status:`, updateError);
+      }
 
       console.log(`Thread generation completed for ID: ${threadId}`);
     } else {
       // Update database with error
-      await db.collection('threads').updateOne(
-        { id: threadId },
-        {
-          $set: {
-            status: 'failed',
-            error: result.error,
-            failedAt: new Date()
-          }
-        }
-      );
+      const { error: updateError } = await supabase
+        .from('threads')
+        .update({
+          status: 'failed',
+          error: result.error,
+          failed_at: new Date().toISOString()
+        })
+        .eq('thread_id', threadId);
+
+      if (updateError) {
+        console.error(`Error updating thread ${threadId} status:`, updateError);
+      }
 
       console.error(`Thread generation failed for ID: ${threadId}`, result.error);
     }
@@ -474,16 +634,18 @@ async function generateThreadAsync(threadId, apiKey, topic, style, threadLength,
     console.error(`Error generating thread ${threadId}:`, error);
     
     // Update database with error
-    await db.collection('threads').updateOne(
-      { id: threadId },
-      {
-        $set: {
-          status: 'failed',
-          error: error.message,
-          failedAt: new Date()
-        }
-      }
-    );
+    const { error: updateError } = await supabase
+      .from('threads')
+      .update({
+        status: 'failed',
+        error: error.message,
+        failed_at: new Date().toISOString()
+      })
+      .eq('thread_id', threadId);
+
+    if (updateError) {
+      console.error(`Error updating thread ${threadId} status:`, updateError);
+    }
   }
 }
 
@@ -509,19 +671,21 @@ app.post('/api/create-funnel', async (req, res) => {
     const funnelId = uuidv4();
 
     // Default funnel structure
+    const templateData = getTemplateData(template);
     const funnelData = {
-      id: funnelId,
+      funnel_id: funnelId,
       name: name.trim(),
       description: description?.trim() || '',
       template,
       category,
       status: 'draft',
-      grapesJsData: getTemplateData(template),
-      htmlContent: '',
-      cssStyles: '',
-      publishedUrl: null,
+      grapes_js_data: templateData,
+      html_content: '',
+      css_styles: '',
+      published_url: null,
       subdomain: null,
-      isPublished: false,
+      custom_domain: null,
+      is_published: false,
       analytics: {
         views: 0,
         conversions: 0,
@@ -531,19 +695,25 @@ app.post('/api/create-funnel', async (req, res) => {
         title: name,
         description: description || `${name} - Landing Page`,
         keywords: ''
-      },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      }
     };
 
     // Save to database
-    await db.collection('funnels').insertOne(funnelData);
+    const { data, error: insertError } = await supabase
+      .from('funnels')
+      .insert([funnelData])
+      .select();
+
+    if (insertError) {
+      console.error('Error creating funnel:', insertError);
+      return res.status(500).json({ error: 'Failed to create funnel' });
+    }
 
     res.json({
       success: true,
       funnel_id: funnelId,
       message: 'Funnel created successfully',
-      funnel: funnelData
+      funnel: data[0]
     });
 
   } catch (error) {
@@ -555,11 +725,16 @@ app.post('/api/create-funnel', async (req, res) => {
 // Get All Funnels endpoint
 app.get('/api/funnels', async (req, res) => {
   try {
-    const funnels = await db.collection('funnels')
-      .find({})
-      .sort({ updatedAt: -1 })
-      .limit(50)
-      .toArray();
+    const { data: funnels, error } = await supabase
+      .from('funnels')
+      .select('*')
+      .order('updated_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error('Error fetching funnels:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
 
     res.json({ funnels });
 
@@ -574,9 +749,13 @@ app.get('/api/funnel/:funnelId', async (req, res) => {
   try {
     const { funnelId } = req.params;
 
-    const funnel = await db.collection('funnels').findOne({ id: funnelId });
+    const { data: funnel, error } = await supabase
+      .from('funnels')
+      .select('*')
+      .eq('funnel_id', funnelId)
+      .single();
     
-    if (!funnel) {
+    if (error || !funnel) {
       return res.status(404).json({ error: 'Funnel not found' });
     }
 
@@ -594,34 +773,39 @@ app.put('/api/funnel/:funnelId', async (req, res) => {
     const { funnelId } = req.params;
     const { name, description, grapesJsData, htmlContent, cssStyles, seo } = req.body;
 
-    const updateData = {
-      updatedAt: new Date()
-    };
+    const updateData = {};
 
     // Update fields if provided
     if (name) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description.trim();
-    if (grapesJsData) updateData.grapesJsData = grapesJsData;
-    if (htmlContent !== undefined) updateData.htmlContent = htmlContent;
-    if (cssStyles !== undefined) updateData.cssStyles = cssStyles;
-    if (seo) updateData.seo = { ...updateData.seo, ...seo };
-
-    const result = await db.collection('funnels').updateOne(
-      { id: funnelId },
-      { $set: updateData }
-    );
-    
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ error: 'Funnel not found' });
+    if (grapesJsData) updateData.grapes_js_data = grapesJsData;
+    if (htmlContent !== undefined) updateData.html_content = htmlContent;
+    if (cssStyles !== undefined) updateData.css_styles = cssStyles;
+    if (seo) {
+      // Get current seo data first
+      const { data: currentFunnel } = await supabase
+        .from('funnels')
+        .select('seo')
+        .eq('funnel_id', funnelId)
+        .single();
+      
+      updateData.seo = { ...(currentFunnel?.seo || {}), ...seo };
     }
 
-    // Get updated funnel
-    const updatedFunnel = await db.collection('funnels').findOne({ id: funnelId });
+    const { data, error } = await supabase
+      .from('funnels')
+      .update(updateData)
+      .eq('funnel_id', funnelId)
+      .select();
+    
+    if (error || !data || data.length === 0) {
+      return res.status(404).json({ error: 'Funnel not found' });
+    }
 
     res.json({ 
       success: true, 
       message: 'Funnel updated successfully',
-      funnel: updatedFunnel
+      funnel: data[0]
     });
 
   } catch (error) {
@@ -636,9 +820,13 @@ app.post('/api/funnel/:funnelId/publish', async (req, res) => {
     const { funnelId } = req.params;
     const { subdomain, customDomain } = req.body;
 
-    const funnel = await db.collection('funnels').findOne({ id: funnelId });
+    const { data: funnel, error: findError } = await supabase
+      .from('funnels')
+      .select('*')
+      .eq('funnel_id', funnelId)
+      .single();
     
-    if (!funnel) {
+    if (findError || !funnel) {
       return res.status(404).json({ error: 'Funnel not found' });
     }
 
@@ -649,10 +837,13 @@ app.post('/api/funnel/:funnelId/publish', async (req, res) => {
 
     // Check if subdomain is already taken
     if (subdomain) {
-      const existingFunnel = await db.collection('funnels').findOne({ 
-        subdomain, 
-        id: { $ne: funnelId } 
-      });
+      const { data: existingFunnel, error } = await supabase
+        .from('funnels')
+        .select('funnel_id')
+        .eq('subdomain', subdomain)
+        .neq('funnel_id', funnelId)
+        .single();
+
       if (existingFunnel) {
         return res.status(400).json({ error: 'Subdomain already taken' });
       }
@@ -665,19 +856,22 @@ app.post('/api/funnel/:funnelId/publish', async (req, res) => {
       : `${baseUrl}/f/${funnelId}`;
 
     // Update funnel with publication data
-    await db.collection('funnels').updateOne(
-      { id: funnelId },
-      {
-        $set: {
-          isPublished: true,
-          publishedUrl,
-          subdomain: subdomain || null,
-          customDomain: customDomain || null,
-          publishedAt: new Date(),
-          updatedAt: new Date()
-        }
-      }
-    );
+    const { data, error: updateError } = await supabase
+      .from('funnels')
+      .update({
+        is_published: true,
+        published_url: publishedUrl,
+        subdomain: subdomain || null,
+        custom_domain: customDomain || null,
+        published_at: new Date().toISOString()
+      })
+      .eq('funnel_id', funnelId)
+      .select();
+
+    if (updateError) {
+      console.error('Error publishing funnel:', updateError);
+      return res.status(500).json({ error: 'Failed to publish funnel' });
+    }
 
     res.json({
       success: true,
@@ -697,18 +891,16 @@ app.post('/api/funnel/:funnelId/unpublish', async (req, res) => {
   try {
     const { funnelId } = req.params;
 
-    const result = await db.collection('funnels').updateOne(
-      { id: funnelId },
-      {
-        $set: {
-          isPublished: false,
-          publishedUrl: null,
-          updatedAt: new Date()
-        }
-      }
-    );
+    const { data, error } = await supabase
+      .from('funnels')
+      .update({
+        is_published: false,
+        published_url: null
+      })
+      .eq('funnel_id', funnelId)
+      .select();
     
-    if (result.matchedCount === 0) {
+    if (error || !data || data.length === 0) {
       return res.status(404).json({ error: 'Funnel not found' });
     }
 
@@ -728,9 +920,13 @@ app.delete('/api/funnel/:funnelId', async (req, res) => {
   try {
     const { funnelId } = req.params;
 
-    const result = await db.collection('funnels').deleteOne({ id: funnelId });
+    const { data, error } = await supabase
+      .from('funnels')
+      .delete()
+      .eq('funnel_id', funnelId)
+      .select();
     
-    if (result.deletedCount === 0) {
+    if (error || !data || data.length === 0) {
       return res.status(404).json({ error: 'Funnel not found' });
     }
 
@@ -747,9 +943,13 @@ app.post('/api/funnel/:funnelId/duplicate', async (req, res) => {
   try {
     const { funnelId } = req.params;
 
-    const originalFunnel = await db.collection('funnels').findOne({ id: funnelId });
+    const { data: originalFunnel, error: findError } = await supabase
+      .from('funnels')
+      .select('*')
+      .eq('funnel_id', funnelId)
+      .single();
     
-    if (!originalFunnel) {
+    if (findError || !originalFunnel) {
       return res.status(404).json({ error: 'Funnel not found' });
     }
 
@@ -757,28 +957,40 @@ app.post('/api/funnel/:funnelId/duplicate', async (req, res) => {
     const duplicateId = uuidv4();
     const duplicateFunnel = {
       ...originalFunnel,
-      id: duplicateId,
+      funnel_id: duplicateId,
       name: `${originalFunnel.name} (Copy)`,
-      isPublished: false,
-      publishedUrl: null,
+      is_published: false,
+      published_url: null,
       subdomain: null,
-      customDomain: null,
+      custom_domain: null,
       analytics: {
         views: 0,
         conversions: 0,
         conversionRate: 0
-      },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      }
     };
 
-    await db.collection('funnels').insertOne(duplicateFunnel);
+    // Remove the original ID and timestamps that will be auto-generated
+    delete duplicateFunnel.id;
+    delete duplicateFunnel.created_at;
+    delete duplicateFunnel.updated_at;
+    delete duplicateFunnel.published_at;
+
+    const { data, error: insertError } = await supabase
+      .from('funnels')
+      .insert([duplicateFunnel])
+      .select();
+
+    if (insertError) {
+      console.error('Error duplicating funnel:', insertError);
+      return res.status(500).json({ error: 'Failed to duplicate funnel' });
+    }
 
     res.json({
       success: true,
       message: 'Funnel duplicated successfully',
       funnel_id: duplicateId,
-      funnel: duplicateFunnel
+      funnel: data[0]
     });
 
   } catch (error) {
@@ -792,9 +1004,13 @@ app.get('/api/funnel/:funnelId/analytics', async (req, res) => {
   try {
     const { funnelId } = req.params;
 
-    const funnel = await db.collection('funnels').findOne({ id: funnelId });
+    const { data: funnel, error } = await supabase
+      .from('funnels')
+      .select('*')
+      .eq('funnel_id', funnelId)
+      .single();
     
-    if (!funnel) {
+    if (error || !funnel) {
       return res.status(404).json({ error: 'Funnel not found' });
     }
 

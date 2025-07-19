@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../AuthContext'
 import SlideshowGenerator from '../components/SlideshowGenerator'
 import ThreadMaker from '../components/ThreadMaker'
 import UserProfile from '../components/UserProfile'

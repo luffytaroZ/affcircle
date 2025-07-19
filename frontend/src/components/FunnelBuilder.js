@@ -22,6 +22,9 @@ const FunnelBuilder = ({ onBack }) => {
   const editorRef = useRef(null)
   const [editor, setEditor] = useState(null)
 
+  // Backend URL with fallback
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'
+
   // Fetch funnels on component mount
   useEffect(() => {
     fetchFunnels()
@@ -30,7 +33,7 @@ const FunnelBuilder = ({ onBack }) => {
   const fetchFunnels = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/funnels`)
+      const response = await fetch(`${BACKEND_URL}/api/funnels`)
       if (response.ok) {
         const data = await response.json()
         setFunnels(data.funnels || [])
@@ -45,7 +48,7 @@ const FunnelBuilder = ({ onBack }) => {
   const createFunnel = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/create-funnel`, {
+      const response = await fetch(`${BACKEND_URL}/api/create-funnel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +75,7 @@ const FunnelBuilder = ({ onBack }) => {
     if (!window.confirm('Are you sure you want to delete this funnel?')) return
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/funnel/${funnelId}`, {
+      const response = await fetch(`${BACKEND_URL}/api/funnel/${funnelId}`, {
         method: 'DELETE',
       })
 
@@ -91,7 +94,7 @@ const FunnelBuilder = ({ onBack }) => {
 
   const publishFunnel = async (funnelId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/funnel/${funnelId}/publish`, {
+      const response = await fetch(`${BACKEND_URL}/api/funnel/${funnelId}/publish`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,7 +119,7 @@ const FunnelBuilder = ({ onBack }) => {
 
   const duplicateFunnel = async (funnelId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/funnel/${funnelId}/duplicate`, {
+      const response = await fetch(`${BACKEND_URL}/api/funnel/${funnelId}/duplicate`, {
         method: 'POST',
       })
 
@@ -335,7 +338,7 @@ const FunnelBuilder = ({ onBack }) => {
       const html = editor.getHtml()
       const css = editor.getCss()
       
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/funnel/${currentFunnel.id}`, {
+              const response = await fetch(`${BACKEND_URL}/api/funnel/${currentFunnel.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

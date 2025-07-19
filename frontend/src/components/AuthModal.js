@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../AuthContext'
 
 const AuthModal = ({ isOpen, onClose, mode = 'signin' }) => {
   const [authMode, setAuthMode] = useState(mode)

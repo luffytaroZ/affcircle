@@ -13,6 +13,9 @@ const SlideshowGenerator = ({ onClose }) => {
   const [progress, setProgress] = useState(0)
   const fileInputRef = useRef(null)
 
+  // Backend URL with fallback
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'
+
   const themes = [
     { 
       id: 'minimal', 
@@ -164,7 +167,7 @@ const SlideshowGenerator = ({ onClose }) => {
       }
 
       // Call the Node.js backend API
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/generate-slideshow`, {
+      const response = await fetch(`${BACKEND_URL}/api/generate-slideshow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -195,7 +198,7 @@ const SlideshowGenerator = ({ onClose }) => {
 
   const pollVideoStatus = async (videoId) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/video-status/${videoId}`)
+      const response = await fetch(`${BACKEND_URL}/api/video-status/${videoId}`)
       const videoStatus = await response.json()
 
       if (videoStatus.status === 'completed') {

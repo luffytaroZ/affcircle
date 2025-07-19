@@ -19,7 +19,6 @@ class ThreadService {
           thread_length,
           platform,
           status: 'pending',
-          user_id: userId,
           created_at: new Date().toISOString()
         }])
         .select()

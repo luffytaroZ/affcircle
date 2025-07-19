@@ -420,6 +420,96 @@ class BackendTester:
             self.log_test("Delete Funnel", False, f"JSON parse error: {str(e)}")
             return False
 
+    def test_thread_generation_with_content_validation(self):
+        """Test complete thread generation flow with content validation"""
+        print("\n🧵 Testing Thread Generation with OpenAI Integration...")
+        
+        # Step 1: Generate thread with specific test parameters
+        test_data = {
+            "topic": "The future of AI in 2025",
+            "style": "educational",
+            "thread_length": 5,
+            "platform": "twitter"
+        }
+        
+        response, success = self.make_request("POST", "/api/generate-thread", test_data)
+        
+        if not success or not response:
+            self.log_test("Thread Generation Flow", False, "Initial request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Thread Generation Flow", False, f"Status code: {response.status_code}, Response: {response.text}")
+            return False
+            
+        try:
+            data = response.json()
+            if not ("thread_id" in data and data.get("success")):
+                self.log_test("Thread Generation Flow", False, f"Unexpected response: {data}")
+                return False
+                
+            thread_id = data["thread_id"]
+            self.log_test("Thread Generation Started", True, f"Thread ID: {thread_id}")
+            
+            # Step 2: Monitor thread generation progress
+            max_attempts = 30  # Wait up to 30 seconds
+            for attempt in range(max_attempts):
+                time.sleep(1)  # Wait 1 second between checks
+                
+                status_response, status_success = self.make_request("GET", f"/api/thread-status/{thread_id}")
+                
+                if not status_success or not status_response or status_response.status_code != 200:
+                    continue
+                    
+                try:
+                    status_data = status_response.json()
+                    current_status = status_data.get("status", "unknown")
+                    
+                    print(f"   Attempt {attempt + 1}: Status = {current_status}")
+                    
+                    if current_status == "completed":
+                        # Step 3: Validate thread content
+                        content = status_data.get("content")
+                        if content:
+                            # Parse content to check if it's actual AI-generated content
+                            if isinstance(content, dict) and "tweets" in content:
+                                tweets = content["tweets"]
+                                if len(tweets) >= 3:  # Should have at least 3 tweets
+                                    # Check if tweets contain actual content (not just placeholders)
+                                    first_tweet = tweets[0].get("content", "")
+                                    if len(first_tweet) > 20 and "AI" in first_tweet and "2025" in first_tweet:
+                                        self.log_test("Thread Content Validation", True, f"Generated {len(tweets)} tweets with relevant AI content")
+                                        self.log_test("Thread Generation Flow", True, f"Complete flow successful - Generated actual AI content about '{test_data['topic']}'")
+                                        return True
+                                    else:
+                                        self.log_test("Thread Content Validation", False, f"Content seems generic or placeholder: {first_tweet[:100]}...")
+                                else:
+                                    self.log_test("Thread Content Validation", False, f"Expected at least 3 tweets, got {len(tweets)}")
+                            else:
+                                self.log_test("Thread Content Validation", False, f"Content format unexpected: {type(content)}")
+                        else:
+                            self.log_test("Thread Content Validation", False, "No content found in completed thread")
+                        
+                        self.log_test("Thread Generation Flow", False, "Thread completed but content validation failed")
+                        return False
+                        
+                    elif current_status == "failed":
+                        error_msg = status_data.get("error", "Unknown error")
+                        self.log_test("Thread Generation Flow", False, f"Thread generation failed: {error_msg}")
+                        return False
+                        
+                except Exception as e:
+                    print(f"   Error parsing status response: {str(e)}")
+                    continue
+            
+            # If we get here, thread generation timed out
+            self.log_test("Thread Generation Flow", False, f"Thread generation timed out after {max_attempts} seconds")
+            return False
+            
+        except Exception as e:
+            self.log_test("Thread Generation Flow", False, f"JSON parse error: {str(e)}")
+            return False
+
     def test_data_validation(self):
         """Test data validation and error handling"""
         print("\n🔍 Testing Data Validation and Error Handling...")

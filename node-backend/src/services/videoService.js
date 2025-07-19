@@ -126,7 +126,7 @@ class VideoService {
       };
 
       if (outputPath) {
-        updateData.output_location = `/videos/${path.basename(outputPath)}`;
+        updateData.output_location = `/api/videos/${path.basename(outputPath)}`;
       }
 
       if (errorMessage) {

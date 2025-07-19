@@ -172,11 +172,16 @@ app.get('/api/video-status/:videoId', async (req, res) => {
 // Get all videos endpoint
 app.get('/api/videos', async (req, res) => {
   try {
-    const videos = await db.collection('videos')
-      .find({})
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .toArray();
+    const { data: videos, error } = await supabase
+      .from('videos')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error('Error fetching videos:', error);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
     const videosWithUrls = videos.map(video => ({
       id: video.id,
@@ -184,9 +189,9 @@ app.get('/api/videos', async (req, res) => {
       theme: video.theme,
       duration: video.duration,
       status: video.status,
-      createdAt: video.createdAt,
-      videoUrl: video.status === 'completed' && video.outputLocation
-        ? `${req.protocol}://${req.get('host')}/videos/${path.basename(video.outputLocation)}`
+      createdAt: video.created_at,
+      videoUrl: video.status === 'completed' && video.output_location
+        ? `${req.protocol}://${req.get('host')}/videos/${path.basename(video.output_location)}`
         : null
     }));
 

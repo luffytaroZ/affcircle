@@ -6,6 +6,7 @@ import ThreadMaker from '../components/ThreadMaker'
 import UserProfile from '../components/UserProfile'
 import VideoAnalytics from '../components/VideoAnalytics'
 import VideoEditor from '../components/VideoEditor'
+import FunnelBuilder from '../components/FunnelBuilder'
 
 const Dashboard = () => {
   const { user, signOut } = useAuth()

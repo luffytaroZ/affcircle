@@ -14,7 +14,7 @@ import os
 class BackendTester:
     def __init__(self):
         # Get backend URL from frontend .env
-        self.base_url = "https://240f9944-2ef1-4874-a0fd-4f1453dc6e46.preview.emergentagent.com/api"
+        self.base_url = "https://961aa6a1-0e44-4a95-9e4d-2cc18df1b817.preview.emergentagent.com/api"
         self.test_results = []
         self.auth_token = None
         self.test_user_email = f"test_{uuid.uuid4().hex[:8]}@example.com"

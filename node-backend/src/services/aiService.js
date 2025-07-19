@@ -34,6 +34,10 @@ class AIService {
    */
   async generateThread(topic, style = 'engaging', threadLength = 5, platform = 'twitter') {
     try {
+      if (!this.openai) {
+        throw new Error('OpenAI client not initialized. Please check your API key configuration.');
+      }
+
       const systemMessage = this._getThreadSystemMessage(style, threadLength, platform);
       
       const completion = await this.openai.chat.completions.create({

@@ -9,6 +9,7 @@ const { renderMedia } = require('@remotion/renderer');
 const { bundle } = require('@remotion/bundler');
 const { spawn } = require('child_process');
 const util = require('util');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();

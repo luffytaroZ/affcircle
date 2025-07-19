@@ -593,9 +593,14 @@ class BackendTester:
             time.sleep(1)  # Brief pause
             self.test_video_status(video_id)
         
-        # Test 3: Thread Maker
+        # Test 3: Thread Maker with OpenAI Integration
         print("\n🧵 Testing Thread Maker...")
         self.test_threads_list()
+        
+        # Run comprehensive thread generation test
+        self.test_thread_generation_with_content_validation()
+        
+        # Also run basic thread tests
         thread_id = self.test_generate_thread()
         if thread_id:
             time.sleep(1)  # Brief pause

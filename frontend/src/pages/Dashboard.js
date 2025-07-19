@@ -406,10 +406,10 @@ const Dashboard = () => {
                   className="p-6"
                 >
                   <div className="text-center py-12">
-                    <h2 className="text-3xl font-bold text-white mb-4">Create New Slideshow</h2>
-                    <p className="text-gray-400 mb-12 text-lg">Choose how you want to create your slideshow</p>
+                    <h2 className="text-3xl font-bold text-white mb-4">Create New Content</h2>
+                    <p className="text-gray-400 mb-12 text-lg">Choose what you want to create</p>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
                       <motion.div
                         onClick={() => handleCreateSlideshow('text')}
                         whileHover={{ scale: 1.05, y: -10 }}
@@ -420,10 +420,10 @@ const Dashboard = () => {
                         <div className="relative z-10">
                           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
                           </div>
-                          <h3 className="text-2xl font-bold text-white mb-3">Text to Slideshow</h3>
+                          <h3 className="text-2xl font-bold text-white mb-3">Video Slideshow</h3>
                           <p className="text-gray-400 mb-6">Convert your text content into engaging video slideshows with AI-powered visuals</p>
                           <div className="flex items-center justify-center space-x-2 text-blue-400">
                             <span className="text-sm font-medium">Get Started</span>
@@ -435,7 +435,31 @@ const Dashboard = () => {
                       </motion.div>
 
                       <motion.div
-                        onClick={() => handleCreateSlideshow('images')}
+                        onClick={() => setActiveTab('funnels')}
+                        whileHover={{ scale: 1.05, y: -10 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="group relative bg-gradient-to-br from-green-500/20 to-teal-600/20 backdrop-blur-sm border border-green-500/30 rounded-2xl p-8 cursor-pointer hover:border-green-400/50 transition-all"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-teal-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="relative z-10">
+                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                          </div>
+                          <h3 className="text-2xl font-bold text-white mb-3">Landing Page Funnel</h3>
+                          <p className="text-gray-400 mb-6">Create professional landing pages with our drag-and-drop editor and publish instantly</p>
+                          <div className="flex items-center justify-center space-x-2 text-green-400">
+                            <span className="text-sm font-medium">Get Started</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        onClick={() => setActiveTab('threads')}
                         whileHover={{ scale: 1.05, y: -10 }}
                         whileTap={{ scale: 0.95 }}
                         className="group relative bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-8 cursor-pointer hover:border-purple-400/50 transition-all"
@@ -444,11 +468,11 @@ const Dashboard = () => {
                         <div className="relative z-10">
                           <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10m-10 4h4m6 0h-6m2 4h4" />
                             </svg>
                           </div>
-                          <h3 className="text-2xl font-bold text-white mb-3">Images to Slideshow</h3>
-                          <p className="text-gray-400 mb-6">Upload your images and create beautiful slideshow presentations with smooth transitions</p>
+                          <h3 className="text-2xl font-bold text-white mb-3">Social Media Thread</h3>
+                          <p className="text-gray-400 mb-6">Generate engaging social media threads for Twitter, LinkedIn, and Instagram with AI</p>
                           <div className="flex items-center justify-center space-x-2 text-purple-400">
                             <span className="text-sm font-medium">Get Started</span>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

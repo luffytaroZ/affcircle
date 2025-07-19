@@ -40,47 +40,24 @@ class ThreadService {
       // Update status to processing
       await this.updateThreadStatus(threadId, 'processing', 25);
 
-      const pythonScriptPath = path.join(__dirname, '../..', 'llm_service_enhanced.py');
+      // Use Pure Node.js AI Service instead of Python subprocess
+      console.log(`🤖 Generating thread with AI Service: ${threadData.topic}`);
       
-      const pythonProcess = spawn('python3', [
-        pythonScriptPath,
+      const result = await aiService.generateThread(
         threadData.topic,
         threadData.style,
-        threadData.thread_length.toString(),
+        threadData.thread_length,
         threadData.platform
-      ]);
+      );
 
-      let outputData = '';
-      let errorData = '';
-
-      pythonProcess.stdout.on('data', (data) => {
-        outputData += data.toString();
-        // Update progress
-        this.updateThreadStatus(threadId, 'processing', 50);
-      });
-
-      pythonProcess.stderr.on('data', (data) => {
-        errorData += data.toString();
-      });
-
-      pythonProcess.on('close', async (code) => {
-        if (code === 0) {
-          try {
-            // Parse the generated content
-            const content = JSON.parse(outputData.trim());
-            
-            // Update thread with generated content
-            await this.updateThreadStatus(threadId, 'completed', 100, content);
-            console.log(`✅ Thread ${threadId} completed successfully`);
-          } catch (parseError) {
-            console.error('Error parsing thread content:', parseError);
-            await this.updateThreadStatus(threadId, 'failed', 0, null, 'Failed to parse generated content');
-          }
-        } else {
-          console.error(`❌ Thread generation failed with code ${code}:`, errorData);
-          await this.updateThreadStatus(threadId, 'failed', 0, null, errorData || 'Unknown error');
-        }
-      });
+      if (result.success) {
+        // Update thread with generated content
+        await this.updateThreadStatus(threadId, 'completed', 100, result);
+        console.log(`✅ Thread ${threadId} completed successfully`);
+      } else {
+        console.error(`❌ Thread generation failed:`, result.error);
+        await this.updateThreadStatus(threadId, 'failed', 0, null, result.error);
+      }
 
     } catch (error) {
       console.error(`❌ Error processing thread ${threadId}:`, error);

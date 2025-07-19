@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const { MongoClient } = require('mongodb');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
@@ -21,29 +20,20 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Test Supabase connection
+async function testSupabaseConnection() {
+  try {
+    const { data, error } = await supabase.from('videos').select('count', { count: 'exact' });
+    if (error) throw error;
+    console.log('✅ Connected to Supabase successfully');
+  } catch (error) {
+    console.error('❌ Supabase connection error:', error.message);
+    console.log('Please ensure you have run the migration SQL script in your Supabase dashboard');
+  }
+}
 
-// Serve static files (videos)
-app.use('/videos', express.static(path.join(__dirname, '../videos')));
-
-// MongoDB connection
-let db;
-const mongoUrl = process.env.MONGO_URL;
-const dbName = process.env.DB_NAME;
-
-// Connect to MongoDB
-MongoClient.connect(mongoUrl)
-  .then(client => {
-    console.log('Connected to MongoDB');
-    db = client.db(dbName);
-  })
-  .catch(error => {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  });
+// Test connection on startup
+testSupabaseConnection();
 
 // Ensure videos directory exists
 const videosDir = path.join(__dirname, '../videos');

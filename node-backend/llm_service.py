@@ -15,6 +15,184 @@ import uuid
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 
+class SlideshowEnhancerService:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        
+    async def enhance_slideshow_content(self, 
+                                      title: str, 
+                                      text: str = "", 
+                                      theme: str = "minimal", 
+                                      duration: int = 30) -> Dict:
+        """
+        Enhance slideshow content using AI to create engaging, structured content
+        """
+        try:
+            # Create unique session ID for this slideshow enhancement
+            session_id = f"slideshow_enhancer_{uuid.uuid4().hex[:8]}"
+            
+            # Initialize chat with system message
+            system_message = self._get_slideshow_system_message(theme, duration)
+            
+            chat = LlmChat(
+                api_key=self.api_key,
+                session_id=session_id,
+                system_message=system_message
+            ).with_model("openai", "gpt-4o").with_max_tokens(2048)
+            
+            # Create user message with title and existing text
+            user_input = f"Title: {title}"
+            if text and text.strip():
+                user_input += f"\nExisting content: {text}"
+            user_input += f"\nTheme: {theme}\nDuration: {duration} seconds"
+            
+            user_message = UserMessage(text=user_input)
+            
+            # Generate response
+            response = await chat.send_message(user_message)
+            
+            # Parse the response into structured slideshow content
+            enhanced_content = self._parse_slideshow_response(response, duration)
+            
+            return {
+                "success": True,
+                "title": title,
+                "theme": theme,
+                "duration": duration,
+                "enhanced_text": enhanced_content["text"],
+                "slides": enhanced_content["slides"],
+                "generated_at": datetime.utcnow().isoformat(),
+                "session_id": session_id
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "title": title,
+                "generated_at": datetime.utcnow().isoformat()
+            }
+    
+    def _get_slideshow_system_message(self, theme: str, duration: int) -> str:
+        """Get system message based on theme and duration"""
+        
+        theme_styles = {
+            "minimal": "Clean, simple, focused on key messages with minimal visual distractions",
+            "corporate": "Professional, business-oriented, data-driven with corporate aesthetics",
+            "storytelling": "Narrative-driven, emotional connection, journey-based structure",
+            "modern": "Contemporary, trendy, tech-savvy with modern design elements",
+            "creative": "Artistic, innovative, out-of-the-box thinking with creative flair",
+            "professional": "Polished, expert-level, industry-focused with authoritative tone",
+            "elegant": "Sophisticated, refined, premium feel with elegant presentation",
+            "cinematic": "Dramatic, movie-like, high-impact with cinematic storytelling"
+        }
+        
+        style_guide = theme_styles.get(theme, theme_styles["minimal"])
+        slides_count = max(3, min(8, duration // 5))  # 3-8 slides based on duration
+        
+        return f"""You are an expert content creator specializing in creating engaging slideshow presentations.
+
+THEME: {theme.capitalize()}
+STYLE: {style_guide}
+DURATION: {duration} seconds
+TARGET SLIDES: {slides_count} slides
+
+Your task is to enhance and structure content for a compelling slideshow presentation.
+
+CONTENT REQUIREMENTS:
+- Create engaging, concise content that fits the theme
+- Structure information into {slides_count} distinct slides
+- Each slide should have a clear focus and message
+- Use compelling headlines and supporting text
+- Include relevant emojis and formatting where appropriate
+- Ensure content flows logically from slide to slide
+- Make it suitable for {duration}-second presentation
+
+OUTPUT FORMAT:
+Return the content in this exact structure:
+
+ENHANCED_TEXT: [Provide a comprehensive, enhanced version of the content that incorporates all key points]
+
+SLIDE_STRUCTURE:
+[SLIDE_1] Compelling headline for slide 1
+Supporting text for slide 1 with key points and engaging elements
+
+[SLIDE_2] Compelling headline for slide 2  
+Supporting text for slide 2 with key points and engaging elements
+
+[Continue for all {slides_count} slides...]
+
+Make each slide impactful, visually descriptive, and aligned with the {theme} theme."""
+
+    def _parse_slideshow_response(self, response: str, duration: int) -> Dict:
+        """Parse the LLM response into structured slideshow content"""
+        slides = []
+        enhanced_text = ""
+        
+        lines = response.strip().split('\n')
+        current_slide = None
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Look for enhanced text section
+            if line.startswith('ENHANCED_TEXT:'):
+                enhanced_text = line.replace('ENHANCED_TEXT:', '').strip()
+                continue
+            
+            # Look for slide markers [SLIDE_X]
+            if line.startswith('[SLIDE_') and ']' in line:
+                if current_slide:
+                    slides.append(current_slide)
+                
+                # Extract slide number and headline
+                try:
+                    bracket_end = line.index(']')
+                    slide_info = line[1:bracket_end]
+                    headline = line[bracket_end + 1:].strip()
+                    
+                    slide_number = int(slide_info.replace('SLIDE_', ''))
+                    
+                    current_slide = {
+                        "slide_number": slide_number,
+                        "headline": headline,
+                        "content": "",
+                        "duration": duration // max(3, min(8, duration // 5))  # Distribute duration evenly
+                    }
+                except (ValueError, IndexError):
+                    continue
+            elif current_slide and line:
+                # Add content to current slide
+                if current_slide["content"]:
+                    current_slide["content"] += " " + line
+                else:
+                    current_slide["content"] = line
+        
+        # Add the last slide
+        if current_slide:
+            slides.append(current_slide)
+        
+        # If no enhanced text was found, create one from slides
+        if not enhanced_text and slides:
+            enhanced_text = " ".join([f"{slide['headline']}. {slide['content']}" for slide in slides])
+        
+        # Fallback if no slides were parsed
+        if not slides:
+            slides = [{
+                "slide_number": 1,
+                "headline": "Enhanced Content",
+                "content": enhanced_text or response[:200],
+                "duration": duration
+            }]
+        
+        return {
+            "text": enhanced_text,
+            "slides": slides
+        }
+
+
 class ThreadMakerService:
     def __init__(self, api_key: str):
         self.api_key = api_key

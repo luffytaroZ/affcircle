@@ -20,8 +20,29 @@ class VideoService {
 
   async createVideo(videoData) {
     try {
-      const { title, text, images, theme, duration, userId } = videoData;
+      const { title, text, images, theme, duration, userId, enhanceWithAI = false } = videoData;
       const videoId = uuidv4();
+
+      // Enhance content with AI if requested
+      let enhancedText = text || '';
+      let enhancedData = null;
+      
+      if (enhanceWithAI) {
+        console.log(`🤖 Enhancing slideshow content with AI for: ${title}`);
+        const aiResult = await aiService.enhanceSlideshowContent(title, text, theme, duration);
+        
+        if (aiResult.success) {
+          enhancedText = aiResult.enhanced_text;
+          enhancedData = {
+            slides: aiResult.slides,
+            ai_generated: true,
+            session_id: aiResult.session_id
+          };
+          console.log(`✅ AI enhancement successful for video ${videoId}`);
+        } else {
+          console.warn(`⚠️ AI enhancement failed, using original text: ${aiResult.error}`);
+        }
+      }
 
       // Insert into database
       const { data, error } = await supabase
@@ -29,11 +50,12 @@ class VideoService {
         .insert([{
           id: videoId,
           title,
-          text: text || '',
+          text: enhancedText,
           images: images || [],
           theme,
           duration,
           status: 'pending',
+          ai_enhanced: enhancedData,
           created_at: new Date().toISOString()
         }])
         .select()
@@ -42,9 +64,16 @@ class VideoService {
       if (error) throw error;
 
       // Start video processing in background
-      this.processVideoAsync(videoId, { title, text, images, theme, duration });
+      this.processVideoAsync(videoId, { 
+        title, 
+        text: enhancedText, 
+        images, 
+        theme, 
+        duration,
+        ai_enhanced: enhancedData
+      });
 
-      return { videoId, status: 'pending' };
+      return { videoId, status: 'pending', ai_enhanced: !!enhancedData };
     } catch (error) {
       console.error('Error creating video:', error);
       throw new Error('Failed to create video');

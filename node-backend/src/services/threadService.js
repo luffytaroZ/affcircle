@@ -1,7 +1,6 @@
-const { spawn } = require('child_process');
 const { supabase } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
+const aiService = require('./aiService');
 
 class ThreadService {
   async createThread(threadData) {

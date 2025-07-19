@@ -11,7 +11,7 @@ import uuid
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://4fdbbe55-e9e5-4591-8de1-eb6d6c86b886.preview.emergentagent.com"
+BACKEND_URL = "https://062aa473-7a3a-408b-a5ec-1af80a02bb2a.preview.emergentagent.com"
 
 class BackendTester:
     def __init__(self, base_url: str):

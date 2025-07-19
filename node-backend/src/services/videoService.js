@@ -28,17 +28,14 @@ class VideoService {
         .insert([{
           id: videoId,
           title,
-          content: text || '',
+          text: text || '',
+          images: images || [],
           theme,
           duration,
           status: 'pending',
           user_id: userId,
           created_at: new Date().toISOString(),
-          progress: 0,
-          metadata: { 
-            images: images || [],
-            processingStarted: new Date().toISOString()
-          }
+          progress: 0
         }])
         .select()
         .single();

@@ -8,15 +8,12 @@
   },
   "name": "app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Clean Node.js slideshow application with Supabase",
   "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "echo 'Use npm start in node-backend or frontend directories'"
   },
-  "keywords": [],
+  "keywords": ["nodejs", "remotion", "supabase", "slideshow"],
   "author": "",
   "license": "ISC"
 }

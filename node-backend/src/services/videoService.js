@@ -118,16 +118,15 @@ class VideoService {
     try {
       const updateData = {
         status,
-        progress,
-        updated_at: new Date().toISOString()
+        progress
       };
 
       if (outputPath) {
-        updateData.output_url = `/videos/${path.basename(outputPath)}`;
+        updateData.output_location = `/videos/${path.basename(outputPath)}`;
       }
 
       if (errorMessage) {
-        updateData.error_message = errorMessage;
+        updateData.error = errorMessage;
       }
 
       await supabase

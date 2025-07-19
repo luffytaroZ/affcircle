@@ -12,6 +12,7 @@
     "grapesjs-component-countdown": "^1.0.2",
     "grapesjs-plugin-export": "^1.0.12",
     "grapesjs-plugin-forms": "^2.0.6",
+    "grapesjs-preset-newsletter": "^1.0.2",
     "grapesjs-preset-webpage": "^1.0.3",
     "grapesjs-style-bg": "^2.0.2",
     "grapesjs-tui-image-editor": "^1.0.2",

@@ -136,9 +136,10 @@ class ThreadService {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      if (userId) {
-        query = query.eq('user_id', userId);
-      }
+      // Note: user_id column doesn't exist in current schema
+      // if (userId) {
+      //   query = query.eq('user_id', userId);
+      // }
 
       const { data, error } = await query;
       if (error) throw error;

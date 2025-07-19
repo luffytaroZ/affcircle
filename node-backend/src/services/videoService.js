@@ -116,8 +116,7 @@ class VideoService {
   async updateVideoStatus(videoId, status, progress, outputPath = null, errorMessage = null) {
     try {
       const updateData = {
-        status,
-        progress
+        status
       };
 
       if (outputPath) {

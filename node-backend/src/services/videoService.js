@@ -183,8 +183,8 @@ class VideoService {
       if (!video) throw new Error('Video not found');
 
       // Delete file if exists
-      if (video.output_url) {
-        const filePath = path.join(this.videosDir, path.basename(video.output_url));
+      if (video.output_location) {
+        const filePath = path.join(this.videosDir, path.basename(video.output_location));
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }

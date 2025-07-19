@@ -381,6 +381,15 @@ Make each slide impactful, visually descriptive, and aligned with the ${theme} t
    */
   async healthCheck() {
     try {
+      if (!this.openai) {
+        return {
+          status: 'unhealthy',
+          error: 'OpenAI client not initialized - check API key configuration',
+          timestamp: new Date().toISOString(),
+          connection: 'not_configured'
+        };
+      }
+
       // Test OpenAI connection with a simple completion
       const completion = await this.openai.chat.completions.create({
         model: "gpt-4o",

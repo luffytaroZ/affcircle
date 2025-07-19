@@ -235,10 +235,11 @@ class BackendTester:
             
             if response.status_code == 200:
                 result = response.json()
-                thread_id = result.get('id')
+                thread_id = result.get('threadId') or result.get('id')  # Handle both possible field names
+                status = result.get('status')
                 
                 if thread_id:
-                    self.log_test("Thread Generation", True, f"Created thread ID: {thread_id}")
+                    self.log_test("Thread Generation", True, f"Created thread ID: {thread_id}, Status: {status}")
                     return thread_id
                 else:
                     self.log_test("Thread Generation", False, "No thread ID returned", str(result))

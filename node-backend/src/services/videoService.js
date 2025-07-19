@@ -33,7 +33,6 @@ class VideoService {
           theme,
           duration,
           status: 'pending',
-          user_id: userId,
           created_at: new Date().toISOString()
         }])
         .select()

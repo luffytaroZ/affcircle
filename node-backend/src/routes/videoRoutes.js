@@ -47,13 +47,17 @@ router.get('/video-status/:videoId', async (req, res) => {
       return res.status(404).json({ error: 'Video not found' });
     }
 
+    // Construct full URL for video downloads
+    const backendUrl = process.env.BACKEND_URL || 'https://583cf182-02fd-44b5-810f-1005bc946497.preview.emergentagent.com';
+    const fullVideoUrl = video.output_location ? `${backendUrl}${video.output_location}` : null;
+
     res.json({
       id: video.id,
       title: video.title,
       status: video.status,
       progress: 0, // Default progress since column doesn't exist
       output_url: video.output_location,
-      videoUrl: video.output_location, // Add videoUrl for frontend compatibility
+      videoUrl: fullVideoUrl, // Full URL for frontend compatibility
       error_message: video.error,
       created_at: video.created_at,
       updated_at: video.updated_at

@@ -8,7 +8,7 @@ export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition
-        id="minimal"
+        id="MinimalTheme"
         component={MinimalTheme}
         durationInFrames={450} // 15 seconds at 30fps (will be dynamic)
         fps={30}
@@ -22,7 +22,7 @@ export const RemotionRoot: React.FC = () => {
         }}
       />
       <Composition
-        id="corporate"
+        id="CorporateTheme"
         component={CorporateTheme}
         durationInFrames={450} // 15 seconds at 30fps (will be dynamic)
         fps={30}
@@ -36,7 +36,7 @@ export const RemotionRoot: React.FC = () => {
         }}
       />
       <Composition
-        id="storytelling"
+        id="StorytellingTheme"
         component={StorytellingTheme}
         durationInFrames={450} // 15 seconds at 30fps (will be dynamic)
         fps={30}

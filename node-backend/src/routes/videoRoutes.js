@@ -52,8 +52,8 @@ router.get('/video-status/:videoId', async (req, res) => {
       title: video.title,
       status: video.status,
       progress: video.progress || 0,
-      output_url: video.output_url,
-      error_message: video.error_message,
+      output_url: video.output_location,
+      error_message: video.error,
       created_at: video.created_at,
       updated_at: video.updated_at
     });

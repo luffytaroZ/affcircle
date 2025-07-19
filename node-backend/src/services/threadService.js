@@ -21,10 +21,7 @@ class ThreadService {
           status: 'pending',
           user_id: userId,
           created_at: new Date().toISOString(),
-          progress: 0,
-          metadata: { 
-            processingStarted: new Date().toISOString()
-          }
+          progress: 0
         }])
         .select()
         .single();

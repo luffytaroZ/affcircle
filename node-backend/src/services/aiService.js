@@ -35,7 +35,8 @@ class AIService {
   async generateThread(topic, style = 'engaging', threadLength = 5, platform = 'twitter') {
     try {
       if (!this.openai) {
-        throw new Error('OpenAI client not initialized. Please check your API key configuration.');
+        console.warn('⚠️ OpenAI not available, using fallback content generation');
+        return this._generateFallbackThread(topic, style, threadLength, platform);
       }
 
       const systemMessage = this._getThreadSystemMessage(style, threadLength, platform);
@@ -61,16 +62,13 @@ class AIService {
         thread_length: tweets.length,
         tweets,
         generated_at: new Date().toISOString(),
-        session_id: `thread_${uuidv4().substring(0, 8)}`
+        session_id: `thread_${uuidv4().substring(0, 8)}`,
+        source: 'openai'
       };
     } catch (error) {
       console.error('AI Service - Thread generation error:', error);
-      return {
-        success: false,
-        error: error.message,
-        topic,
-        generated_at: new Date().toISOString()
-      };
+      console.warn('⚠️ OpenAI failed, using fallback content generation');
+      return this._generateFallbackThread(topic, style, threadLength, platform);
     }
   }
 

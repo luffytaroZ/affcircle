@@ -93,8 +93,7 @@ class ThreadService {
   async updateThreadStatus(threadId, status, progress, content = null, errorMessage = null) {
     try {
       const updateData = {
-        status,
-        progress
+        status
       };
 
       if (content) {

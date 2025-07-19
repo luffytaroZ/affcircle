@@ -355,9 +355,140 @@ def test_thread_maker_validation():
     except Exception as e:
         print(f"   ❌ Error testing non-existent thread deletion: {e}")
 
+def test_supabase_authentication():
+    """Test NEW Supabase Authentication API endpoints"""
+    print("\n5. Testing NEW Supabase Authentication API Endpoints...")
+    
+    # Test data for authentication
+    test_email = "testuser@example.com"
+    test_password = "testpassword123"
+    access_token = None
+    
+    # Test POST /api/auth/register
+    print("   Testing POST /api/auth/register...")
+    try:
+        register_data = {
+            "email": test_email,
+            "password": test_password
+        }
+        response = requests.post(f"{API_BASE}/auth/register", 
+                               json=register_data, timeout=10)
+        print(f"   Status: {response.status_code}")
+        if response.status_code == 200:
+            data = response.json()
+            print("   ✅ POST /api/auth/register working: Registration successful")
+            if 'session' in data and data['session']:
+                access_token = data['session']['access_token']
+                print(f"   🔑 Access token obtained for further testing")
+            register_working = True
+        elif response.status_code == 400 and "already registered" in response.text.lower():
+            print("   ✅ POST /api/auth/register working: User already exists (expected)")
+            register_working = True
+        else:
+            print(f"   ❌ POST /api/auth/register failed: {response.text}")
+            register_working = False
+    except Exception as e:
+        print(f"   ❌ Error testing /api/auth/register: {e}")
+        register_working = False
+    
+    # Test POST /api/auth/login
+    print("   Testing POST /api/auth/login...")
+    try:
+        login_data = {
+            "email": test_email,
+            "password": test_password
+        }
+        response = requests.post(f"{API_BASE}/auth/login", 
+                               json=login_data, timeout=10)
+        print(f"   Status: {response.status_code}")
+        if response.status_code == 200:
+            data = response.json()
+            print("   ✅ POST /api/auth/login working: Login successful")
+            if 'session' in data and data['session']:
+                access_token = data['session']['access_token']
+                print(f"   🔑 Access token obtained from login")
+            login_working = True
+        else:
+            print(f"   ❌ POST /api/auth/login failed: {response.text}")
+            login_working = False
+    except Exception as e:
+        print(f"   ❌ Error testing /api/auth/login: {e}")
+        login_working = False
+    
+    # Test GET /api/auth/profile with authorization header
+    print("   Testing GET /api/auth/profile with authorization...")
+    profile_working = False
+    try:
+        if access_token:
+            headers = {"Authorization": f"Bearer {access_token}"}
+            response = requests.get(f"{API_BASE}/auth/profile", 
+                                  headers=headers, timeout=10)
+            print(f"   Status: {response.status_code}")
+            if response.status_code == 200:
+                data = response.json()
+                print(f"   ✅ GET /api/auth/profile working: User profile retrieved")
+                print(f"   👤 User email: {data.get('user', {}).get('email', 'N/A')}")
+                profile_working = True
+            else:
+                print(f"   ❌ GET /api/auth/profile failed: {response.text}")
+        else:
+            print("   ⚠️  No access token available to test profile endpoint")
+    except Exception as e:
+        print(f"   ❌ Error testing /api/auth/profile: {e}")
+    
+    # Test GET /api/auth/profile without authorization header (should fail)
+    print("   Testing GET /api/auth/profile without authorization...")
+    try:
+        response = requests.get(f"{API_BASE}/auth/profile", timeout=10)
+        print(f"   Status: {response.status_code}")
+        if response.status_code == 401:
+            print("   ✅ Proper 401 handling for missing authorization")
+        else:
+            print("   ⚠️  Unexpected response for missing authorization")
+    except Exception as e:
+        print(f"   ❌ Error testing missing authorization: {e}")
+    
+    # Test authentication validation errors
+    print("   Testing authentication validation errors...")
+    
+    # Test register with missing email
+    try:
+        invalid_data = {"password": "testpass123"}
+        response = requests.post(f"{API_BASE}/auth/register", 
+                               json=invalid_data, timeout=10)
+        print(f"   Register missing email - Status: {response.status_code}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation for missing email in register")
+    except Exception as e:
+        print(f"   ❌ Error testing register missing email: {e}")
+    
+    # Test register with short password
+    try:
+        invalid_data = {"email": "test@example.com", "password": "123"}
+        response = requests.post(f"{API_BASE}/auth/register", 
+                               json=invalid_data, timeout=10)
+        print(f"   Register short password - Status: {response.status_code}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation for short password in register")
+    except Exception as e:
+        print(f"   ❌ Error testing register short password: {e}")
+    
+    # Test login with missing credentials
+    try:
+        invalid_data = {"email": "test@example.com"}
+        response = requests.post(f"{API_BASE}/auth/login", 
+                               json=invalid_data, timeout=10)
+        print(f"   Login missing password - Status: {response.status_code}")
+        if response.status_code == 400:
+            print("   ✅ Proper validation for missing password in login")
+    except Exception as e:
+        print(f"   ❌ Error testing login missing password: {e}")
+    
+    return register_working, login_working, profile_working
+
 def test_error_handling():
     """Test error handling with invalid data"""
-    print("\n5. Testing Slideshow Error Handling...")
+    print("\n6. Testing Slideshow Error Handling...")
     
     # Test POST /api/generate-slideshow with missing required fields
     print("   Testing POST /api/generate-slideshow with missing title...")

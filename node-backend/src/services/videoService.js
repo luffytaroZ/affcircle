@@ -2,6 +2,7 @@ const { renderMedia } = require('@remotion/renderer');
 const { supabase } = require('../config/database');
 const { getBundleLocation } = require('../config/remotion');
 const { v4: uuidv4 } = require('uuid');
+const aiService = require('./aiService');
 const path = require('path');
 const fs = require('fs');
 

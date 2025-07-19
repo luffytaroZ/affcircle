@@ -222,30 +222,99 @@ async function generateVideoAsync(videoId, videoData) {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const compositionId = getCompositionForTheme(videoData.theme);
+    // Step 1: AI Content Enhancement
+    let enhancedVideoData = { ...videoData };
+    
+    // Get API key from environment
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (apiKey && apiKey !== 'your_openai_api_key_here') {
+      try {
+        console.log(`Enhancing content with AI for video: ${videoId}`);
+        
+        // Call Python LLM service for slideshow enhancement
+        const pythonScript = path.join(__dirname, '../llm_service.py');
+        const execAsync = util.promisify(require('child_process').exec);
+        
+        const command = `python "${pythonScript}" enhance_slideshow "${apiKey}" "${videoData.title}" "${videoData.text || 'null'}" "${videoData.theme}" "${videoData.duration}"`;
+        console.log('Executing AI enhancement command:', command);
+        
+        const { stdout, stderr } = await execAsync(command);
+        
+        if (stderr) {
+          console.error('Python script stderr:', stderr);
+        }
+        
+        console.log('AI enhancement output:', stdout);
+        
+        try {
+          const enhancementResult = JSON.parse(stdout);
+          
+          if (enhancementResult.success) {
+            // Update video data with AI-enhanced content
+            enhancedVideoData.enhanced_text = enhancementResult.enhanced_text;
+            enhancedVideoData.slides = enhancementResult.slides;
+            enhancedVideoData.ai_enhanced = true;
+            
+            console.log(`AI enhancement successful for video: ${videoId}`);
+            console.log(`Enhanced text length: ${enhancementResult.enhanced_text?.length || 0} characters`);
+            console.log(`Generated slides: ${enhancementResult.slides?.length || 0}`);
+            
+            // Update database with enhanced content
+            await supabase
+              .from('videos')
+              .update({
+                text: enhancementResult.enhanced_text,
+                enhanced_data: {
+                  slides: enhancementResult.slides,
+                  ai_enhanced: true,
+                  generated_at: enhancementResult.generated_at
+                }
+              })
+              .eq('id', videoId);
+              
+          } else {
+            console.warn(`AI enhancement failed for video: ${videoId}, error: ${enhancementResult.error}`);
+            // Continue with original content
+          }
+        } catch (parseError) {
+          console.error('Error parsing AI enhancement result:', parseError);
+          // Continue with original content
+        }
+      } catch (error) {
+        console.error(`AI enhancement error for video ${videoId}:`, error);
+        // Continue with original content
+      }
+    } else {
+      console.log('OpenAI API key not configured, skipping AI enhancement');
+    }
+
+    const compositionId = getCompositionForTheme(enhancedVideoData.theme);
     const outputPath = path.join(videosDir, `${videoId}.mp4`);
 
     console.log(`Rendering composition: ${compositionId}`);
     console.log(`Output path: ${outputPath}`);
-    console.log(`Video data:`, videoData);
+    console.log(`Video data:`, enhancedVideoData);
 
-    // Render the video
+    // Step 2: Render the video with enhanced content
     await renderMedia({
       composition: {
         id: compositionId,
         width: 1920,
         height: 1080,
         fps: 30,
-        durationInFrames: videoData.duration * 30, // Convert seconds to frames
+        durationInFrames: enhancedVideoData.duration * 30, // Convert seconds to frames
       },
       serveUrl: bundleLocation,
       codec: 'h264',
       outputLocation: outputPath,
       inputProps: {
-        title: videoData.title,
-        text: videoData.text,
-        images: videoData.images,
-        duration: videoData.duration
+        title: enhancedVideoData.title,
+        text: enhancedVideoData.enhanced_text || enhancedVideoData.text,
+        slides: enhancedVideoData.slides,
+        images: enhancedVideoData.images,
+        duration: enhancedVideoData.duration,
+        ai_enhanced: enhancedVideoData.ai_enhanced || false
       },
       onProgress: (progress) => {
         console.log(`Rendering progress for ${videoId}: ${Math.round(progress.progress * 100)}%`);

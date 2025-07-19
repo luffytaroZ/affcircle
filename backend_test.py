@@ -431,15 +431,19 @@ class BackendTester:
             "duration": 45  # Invalid duration
         }
         
-        response, success = self.make_request("POST", "/api/generate-slideshow", invalid_slideshow)
-        if success and response and response.status_code == 400:
-            try:
-                error_data = response.json()
-                self.log_test("Slideshow Validation", True, f"Properly rejected invalid data: {error_data.get('error', 'Unknown error')}")
-            except:
-                self.log_test("Slideshow Validation", True, "Properly rejected invalid slideshow data")
-        else:
-            self.log_test("Slideshow Validation", False, f"Expected 400 status, got {response.status_code if response else 'No response'}")
+        try:
+            url = f"{self.base_url}/api/generate-slideshow"
+            response = requests.post(url, json=invalid_slideshow, timeout=10)
+            if response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    self.log_test("Slideshow Validation", True, f"Properly rejected invalid data: {error_data.get('error', 'Unknown error')}")
+                except:
+                    self.log_test("Slideshow Validation", True, "Properly rejected invalid slideshow data")
+            else:
+                self.log_test("Slideshow Validation", False, f"Expected 400 status, got {response.status_code}")
+        except Exception as e:
+            self.log_test("Slideshow Validation", False, f"Request failed: {str(e)}")
         
         # Test invalid thread data
         invalid_thread = {
@@ -449,30 +453,38 @@ class BackendTester:
             "platform": "invalid_platform"  # Invalid platform
         }
         
-        response, success = self.make_request("POST", "/api/generate-thread", invalid_thread)
-        if success and response and response.status_code == 400:
-            try:
-                error_data = response.json()
-                self.log_test("Thread Validation", True, f"Properly rejected invalid data: {error_data.get('error', 'Unknown error')}")
-            except:
-                self.log_test("Thread Validation", True, "Properly rejected invalid thread data")
-        else:
-            self.log_test("Thread Validation", False, f"Expected 400 status, got {response.status_code if response else 'No response'}")
+        try:
+            url = f"{self.base_url}/api/generate-thread"
+            response = requests.post(url, json=invalid_thread, timeout=10)
+            if response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    self.log_test("Thread Validation", True, f"Properly rejected invalid data: {error_data.get('error', 'Unknown error')}")
+                except:
+                    self.log_test("Thread Validation", True, "Properly rejected invalid thread data")
+            else:
+                self.log_test("Thread Validation", False, f"Expected 400 status, got {response.status_code}")
+        except Exception as e:
+            self.log_test("Thread Validation", False, f"Request failed: {str(e)}")
         
         # Test invalid funnel data
         invalid_funnel = {
             "name": ""  # Empty name
         }
         
-        response, success = self.make_request("POST", "/api/funnels", invalid_funnel)
-        if success and response and response.status_code == 400:
-            try:
-                error_data = response.json()
-                self.log_test("Funnel Validation", True, f"Properly rejected invalid data: {error_data.get('error', 'Unknown error')}")
-            except:
-                self.log_test("Funnel Validation", True, "Properly rejected invalid funnel data")
-        else:
-            self.log_test("Funnel Validation", False, f"Expected 400 status, got {response.status_code if response else 'No response'}")
+        try:
+            url = f"{self.base_url}/api/funnels"
+            response = requests.post(url, json=invalid_funnel, timeout=10)
+            if response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    self.log_test("Funnel Validation", True, f"Properly rejected invalid data: {error_data.get('error', 'Unknown error')}")
+                except:
+                    self.log_test("Funnel Validation", True, "Properly rejected invalid funnel data")
+            else:
+                self.log_test("Funnel Validation", False, f"Expected 400 status, got {response.status_code}")
+        except Exception as e:
+            self.log_test("Funnel Validation", False, f"Request failed: {str(e)}")
 
     def run_comprehensive_tests(self):
         """Run all comprehensive tests for Supabase migration"""

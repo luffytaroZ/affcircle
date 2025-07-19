@@ -1,0 +1,538 @@
+#!/usr/bin/env python3
+"""
+Comprehensive Backend Testing for Supabase Migration
+Tests all critical API endpoints to verify successful migration from MongoDB to Supabase PostgreSQL
+"""
+
+import requests
+import json
+import time
+import uuid
+from typing import Dict, Any, Optional
+
+# Backend URL from environment
+BACKEND_URL = "https://4fdbbe55-e9e5-4591-8de1-eb6d6c86b886.preview.emergentagent.com"
+
+class BackendTester:
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+        self.session = requests.Session()
+        self.test_results = []
+        
+    def log_test(self, test_name: str, success: bool, details: str = ""):
+        """Log test results"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status} {test_name}")
+        if details:
+            print(f"   Details: {details}")
+        
+        self.test_results.append({
+            "test": test_name,
+            "success": success,
+            "details": details
+        })
+    
+    def make_request(self, method: str, endpoint: str, data: Optional[Dict] = None, params: Optional[Dict] = None) -> tuple:
+        """Make HTTP request and return response and success status"""
+        try:
+            url = f"{self.base_url}{endpoint}"
+            
+            if method.upper() == "GET":
+                response = self.session.get(url, params=params)
+            elif method.upper() == "POST":
+                response = self.session.post(url, json=data)
+            elif method.upper() == "PUT":
+                response = self.session.put(url, json=data)
+            elif method.upper() == "DELETE":
+                response = self.session.delete(url)
+            else:
+                return None, False
+                
+            return response, True
+        except Exception as e:
+            print(f"   Request error: {str(e)}")
+            return None, False
+
+    def test_health_check(self):
+        """Test GET /api/health - Should return healthy status with bundleReady"""
+        response, success = self.make_request("GET", "/api/health")
+        
+        if not success or not response:
+            self.log_test("Health Check", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Health Check", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if data.get("status") == "healthy" and "bundleReady" in data:
+                self.log_test("Health Check", True, f"Status: {data['status']}, Bundle Ready: {data['bundleReady']}")
+                return True
+            else:
+                self.log_test("Health Check", False, f"Unexpected response: {data}")
+                return False
+        except Exception as e:
+            self.log_test("Health Check", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_videos_list(self):
+        """Test GET /api/videos - Should list videos from Supabase"""
+        response, success = self.make_request("GET", "/api/videos")
+        
+        if not success or not response:
+            self.log_test("Videos List", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Videos List", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if isinstance(data, list):
+                self.log_test("Videos List", True, f"Retrieved {len(data)} videos from Supabase")
+                return True
+            else:
+                self.log_test("Videos List", False, f"Expected list, got: {type(data)}")
+                return False
+        except Exception as e:
+            self.log_test("Videos List", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_generate_slideshow(self):
+        """Test POST /api/generate-slideshow - Should create video records in Supabase"""
+        test_data = {
+            "title": "Supabase Migration Test Video",
+            "text": "Testing video generation after Supabase migration. This should create a record in PostgreSQL.",
+            "theme": "minimal",
+            "duration": 15,
+            "images": []
+        }
+        
+        response, success = self.make_request("POST", "/api/generate-slideshow", test_data)
+        
+        if not success or not response:
+            self.log_test("Generate Slideshow", False, "Request failed")
+            return None
+            
+        if response.status_code != 200:
+            self.log_test("Generate Slideshow", False, f"Status code: {response.status_code}, Response: {response.text}")
+            return None
+            
+        try:
+            data = response.json()
+            if "videoId" in data and data.get("status") == "processing":
+                self.log_test("Generate Slideshow", True, f"Video created with ID: {data['videoId']}")
+                return data["videoId"]
+            else:
+                self.log_test("Generate Slideshow", False, f"Unexpected response: {data}")
+                return None
+        except Exception as e:
+            self.log_test("Generate Slideshow", False, f"JSON parse error: {str(e)}")
+            return None
+
+    def test_video_status(self, video_id: str):
+        """Test GET /api/video-status/{videoId} - Should fetch video status from Supabase"""
+        if not video_id:
+            self.log_test("Video Status", False, "No video ID provided")
+            return False
+            
+        response, success = self.make_request("GET", f"/api/video-status/{video_id}")
+        
+        if not success or not response:
+            self.log_test("Video Status", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Video Status", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if "id" in data and "status" in data:
+                self.log_test("Video Status", True, f"Video {data['id']} status: {data['status']}")
+                return True
+            else:
+                self.log_test("Video Status", False, f"Unexpected response: {data}")
+                return False
+        except Exception as e:
+            self.log_test("Video Status", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_threads_list(self):
+        """Test GET /api/threads - Should list threads from Supabase"""
+        response, success = self.make_request("GET", "/api/threads")
+        
+        if not success or not response:
+            self.log_test("Threads List", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Threads List", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if isinstance(data, list):
+                self.log_test("Threads List", True, f"Retrieved {len(data)} threads from Supabase")
+                return True
+            else:
+                self.log_test("Threads List", False, f"Expected list, got: {type(data)}")
+                return False
+        except Exception as e:
+            self.log_test("Threads List", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_generate_thread(self):
+        """Test POST /api/generate-thread - Should create thread records in Supabase"""
+        test_data = {
+            "topic": "Supabase Migration Benefits",
+            "style": "educational",
+            "thread_length": 5,
+            "platform": "twitter"
+        }
+        
+        response, success = self.make_request("POST", "/api/generate-thread", test_data)
+        
+        if not success or not response:
+            self.log_test("Generate Thread", False, "Request failed")
+            return None
+            
+        if response.status_code != 200:
+            self.log_test("Generate Thread", False, f"Status code: {response.status_code}, Response: {response.text}")
+            return None
+            
+        try:
+            data = response.json()
+            if "thread_id" in data and data.get("success"):
+                self.log_test("Generate Thread", True, f"Thread created with ID: {data['thread_id']}")
+                return data["thread_id"]
+            else:
+                self.log_test("Generate Thread", False, f"Unexpected response: {data}")
+                return None
+        except Exception as e:
+            self.log_test("Generate Thread", False, f"JSON parse error: {str(e)}")
+            return None
+
+    def test_thread_status(self, thread_id: str):
+        """Test GET /api/thread-status/{threadId} - Should fetch thread status from Supabase"""
+        if not thread_id:
+            self.log_test("Thread Status", False, "No thread ID provided")
+            return False
+            
+        response, success = self.make_request("GET", f"/api/thread-status/{thread_id}")
+        
+        if not success or not response:
+            self.log_test("Thread Status", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Thread Status", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if "id" in data and "status" in data:
+                self.log_test("Thread Status", True, f"Thread {data['id']} status: {data['status']}")
+                return True
+            else:
+                self.log_test("Thread Status", False, f"Unexpected response: {data}")
+                return False
+        except Exception as e:
+            self.log_test("Thread Status", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_delete_thread(self, thread_id: str):
+        """Test DELETE /api/thread/{threadId} - Should delete threads from Supabase"""
+        if not thread_id:
+            self.log_test("Delete Thread", False, "No thread ID provided")
+            return False
+            
+        response, success = self.make_request("DELETE", f"/api/thread/{thread_id}")
+        
+        if not success or not response:
+            self.log_test("Delete Thread", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Delete Thread", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if data.get("success"):
+                self.log_test("Delete Thread", True, f"Thread {thread_id} deleted successfully")
+                return True
+            else:
+                self.log_test("Delete Thread", False, f"Unexpected response: {data}")
+                return False
+        except Exception as e:
+            self.log_test("Delete Thread", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_funnels_list(self):
+        """Test GET /api/funnels - Should list funnels from Supabase"""
+        response, success = self.make_request("GET", "/api/funnels")
+        
+        if not success or not response:
+            self.log_test("Funnels List", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Funnels List", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if isinstance(data, list):
+                self.log_test("Funnels List", True, f"Retrieved {len(data)} funnels from Supabase")
+                return True
+            else:
+                self.log_test("Funnels List", False, f"Expected list, got: {type(data)}")
+                return False
+        except Exception as e:
+            self.log_test("Funnels List", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_create_funnel(self):
+        """Test POST /api/funnels - Should create funnel records in Supabase"""
+        test_data = {
+            "name": "Supabase Migration Test Funnel",
+            "description": "Testing funnel creation after Supabase migration",
+            "templateId": "basic"
+        }
+        
+        response, success = self.make_request("POST", "/api/funnels", test_data)
+        
+        if not success or not response:
+            self.log_test("Create Funnel", False, "Request failed")
+            return None
+            
+        if response.status_code != 200:
+            self.log_test("Create Funnel", False, f"Status code: {response.status_code}, Response: {response.text}")
+            return None
+            
+        try:
+            data = response.json()
+            if "funnel_id" in data and data.get("success"):
+                self.log_test("Create Funnel", True, f"Funnel created with ID: {data['funnel_id']}")
+                return data["funnel_id"]
+            else:
+                self.log_test("Create Funnel", False, f"Unexpected response: {data}")
+                return None
+        except Exception as e:
+            self.log_test("Create Funnel", False, f"JSON parse error: {str(e)}")
+            return None
+
+    def test_get_funnel(self, funnel_id: str):
+        """Test GET /api/funnels/{funnelId} - Should fetch specific funnel from Supabase"""
+        if not funnel_id:
+            self.log_test("Get Funnel", False, "No funnel ID provided")
+            return False
+            
+        response, success = self.make_request("GET", f"/api/funnels/{funnel_id}")
+        
+        if not success or not response:
+            self.log_test("Get Funnel", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Get Funnel", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if "id" in data and "name" in data:
+                self.log_test("Get Funnel", True, f"Funnel {data['id']} retrieved: {data['name']}")
+                return True
+            else:
+                self.log_test("Get Funnel", False, f"Unexpected response: {data}")
+                return False
+        except Exception as e:
+            self.log_test("Get Funnel", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_update_funnel(self, funnel_id: str):
+        """Test PUT /api/funnels/{funnelId} - Should update funnel in Supabase"""
+        if not funnel_id:
+            self.log_test("Update Funnel", False, "No funnel ID provided")
+            return False
+            
+        update_data = {
+            "name": "Updated Supabase Test Funnel",
+            "description": "Updated description after Supabase migration test",
+            "seo": {
+                "title": "Updated SEO Title",
+                "description": "Updated SEO description",
+                "keywords": "supabase, migration, test"
+            }
+        }
+        
+        response, success = self.make_request("PUT", f"/api/funnels/{funnel_id}", update_data)
+        
+        if not success or not response:
+            self.log_test("Update Funnel", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Update Funnel", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if data.get("success") and "funnel" in data:
+                self.log_test("Update Funnel", True, f"Funnel {funnel_id} updated successfully")
+                return True
+            else:
+                self.log_test("Update Funnel", False, f"Unexpected response: {data}")
+                return False
+        except Exception as e:
+            self.log_test("Update Funnel", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_delete_funnel(self, funnel_id: str):
+        """Test DELETE /api/funnels/{funnelId} - Should delete funnel from Supabase"""
+        if not funnel_id:
+            self.log_test("Delete Funnel", False, "No funnel ID provided")
+            return False
+            
+        response, success = self.make_request("DELETE", f"/api/funnels/{funnel_id}")
+        
+        if not success or not response:
+            self.log_test("Delete Funnel", False, "Request failed")
+            return False
+            
+        if response.status_code != 200:
+            self.log_test("Delete Funnel", False, f"Status code: {response.status_code}")
+            return False
+            
+        try:
+            data = response.json()
+            if data.get("success"):
+                self.log_test("Delete Funnel", True, f"Funnel {funnel_id} deleted successfully")
+                return True
+            else:
+                self.log_test("Delete Funnel", False, f"Unexpected response: {data}")
+                return False
+        except Exception as e:
+            self.log_test("Delete Funnel", False, f"JSON parse error: {str(e)}")
+            return False
+
+    def test_data_validation(self):
+        """Test data validation and error handling"""
+        print("\n🔍 Testing Data Validation and Error Handling...")
+        
+        # Test invalid slideshow data
+        invalid_slideshow = {
+            "title": "",  # Empty title
+            "theme": "invalid_theme",  # Invalid theme
+            "duration": 45  # Invalid duration
+        }
+        
+        response, success = self.make_request("POST", "/api/generate-slideshow", invalid_slideshow)
+        if success and response and response.status_code == 400:
+            self.log_test("Slideshow Validation", True, "Properly rejected invalid slideshow data")
+        else:
+            self.log_test("Slideshow Validation", False, "Failed to validate slideshow data")
+        
+        # Test invalid thread data
+        invalid_thread = {
+            "topic": "",  # Empty topic
+            "style": "invalid_style",  # Invalid style
+            "thread_length": 25,  # Invalid length
+            "platform": "invalid_platform"  # Invalid platform
+        }
+        
+        response, success = self.make_request("POST", "/api/generate-thread", invalid_thread)
+        if success and response and response.status_code == 400:
+            self.log_test("Thread Validation", True, "Properly rejected invalid thread data")
+        else:
+            self.log_test("Thread Validation", False, "Failed to validate thread data")
+        
+        # Test invalid funnel data
+        invalid_funnel = {
+            "name": ""  # Empty name
+        }
+        
+        response, success = self.make_request("POST", "/api/funnels", invalid_funnel)
+        if success and response and response.status_code == 400:
+            self.log_test("Funnel Validation", True, "Properly rejected invalid funnel data")
+        else:
+            self.log_test("Funnel Validation", False, "Failed to validate funnel data")
+
+    def run_comprehensive_tests(self):
+        """Run all comprehensive tests for Supabase migration"""
+        print("🚀 Starting Comprehensive Backend Testing for Supabase Migration")
+        print("=" * 70)
+        
+        # Test 1: Health Check
+        print("\n🏥 Testing Health Check...")
+        self.test_health_check()
+        
+        # Test 2: Videos/Slideshow Generation
+        print("\n🎬 Testing Videos/Slideshow Generation...")
+        self.test_videos_list()
+        video_id = self.test_generate_slideshow()
+        if video_id:
+            time.sleep(1)  # Brief pause
+            self.test_video_status(video_id)
+        
+        # Test 3: Thread Maker
+        print("\n🧵 Testing Thread Maker...")
+        self.test_threads_list()
+        thread_id = self.test_generate_thread()
+        if thread_id:
+            time.sleep(1)  # Brief pause
+            self.test_thread_status(thread_id)
+            # Test delete thread
+            self.test_delete_thread(thread_id)
+        
+        # Test 4: Funnel Builder
+        print("\n🔧 Testing Funnel Builder...")
+        self.test_funnels_list()
+        funnel_id = self.test_create_funnel()
+        if funnel_id:
+            time.sleep(1)  # Brief pause
+            self.test_get_funnel(funnel_id)
+            self.test_update_funnel(funnel_id)
+            self.test_delete_funnel(funnel_id)
+        
+        # Test 5: Data Validation
+        self.test_data_validation()
+        
+        # Summary
+        print("\n" + "=" * 70)
+        print("📊 TEST SUMMARY")
+        print("=" * 70)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"✅ Passed: {passed_tests}")
+        print(f"❌ Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if failed_tests > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"   - {result['test']}: {result['details']}")
+        
+        print("\n🎯 MIGRATION STATUS:")
+        if failed_tests == 0:
+            print("✅ Supabase migration SUCCESSFUL - All endpoints working correctly!")
+        elif failed_tests <= 2:
+            print("⚠️  Supabase migration mostly successful with minor issues")
+        else:
+            print("❌ Supabase migration has significant issues requiring attention")
+        
+        return failed_tests == 0
+
+if __name__ == "__main__":
+    tester = BackendTester(BACKEND_URL)
+    success = tester.run_comprehensive_tests()
+    exit(0 if success else 1)

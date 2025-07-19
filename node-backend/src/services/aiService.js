@@ -8,9 +8,25 @@ const { v4: uuidv4 } = require('uuid');
 
 class AIService {
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('⚠️ OPENAI_API_KEY not found in environment variables');
+      this.openai = null;
+    } else if (!apiKey.startsWith('sk-')) {
+      console.warn('⚠️ OPENAI_API_KEY format appears invalid - should start with sk-');
+      this.openai = null;
+    } else {
+      try {
+        this.openai = new OpenAI({
+          apiKey: apiKey.trim(), // Trim any whitespace
+        });
+        console.log('✅ OpenAI client initialized successfully');
+      } catch (error) {
+        console.error('❌ Failed to initialize OpenAI client:', error.message);
+        this.openai = null;
+      }
+    }
   }
 
   /**

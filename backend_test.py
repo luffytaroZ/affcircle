@@ -186,9 +186,9 @@ class BackendTester:
             return False
 
     def test_generate_thread(self):
-        """Test POST /api/generate-thread - Should create thread records in Supabase"""
+        """Test POST /api/generate-thread - Should create thread records in Supabase with OpenAI integration"""
         test_data = {
-            "topic": "Supabase Migration Benefits",
+            "topic": "The future of AI in 2025",
             "style": "educational",
             "thread_length": 5,
             "platform": "twitter"

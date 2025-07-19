@@ -391,6 +391,21 @@ async def main():
         result = await service.generate_thread(topic, style, thread_length, platform)
         print(json.dumps(result))
         
+    elif command == "enhance_slideshow":
+        if len(sys.argv) < 6:
+            print(json.dumps({"error": "Missing parameters: api_key title text theme duration"}))
+            return
+            
+        api_key = sys.argv[2]
+        title = sys.argv[3] 
+        text = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] != "null" else ""
+        theme = sys.argv[5] if len(sys.argv) > 5 else "minimal"
+        duration = int(sys.argv[6]) if len(sys.argv) > 6 else 30
+        
+        service = SlideshowEnhancerService(api_key)
+        result = await service.enhance_slideshow_content(title, text, theme, duration)
+        print(json.dumps(result))
+        
     elif command == "health":
         print(json.dumps({"status": "healthy", "timestamp": datetime.utcnow().isoformat()}))
         

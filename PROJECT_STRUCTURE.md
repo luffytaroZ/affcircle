@@ -66,9 +66,11 @@ Full-stack application with React frontend, Node.js backend, and Supabase Postgr
 - **Backend**: `/app/node-backend/.env`
 - **Frontend**: `/app/frontend/.env`
 
-### Service Management
-- **Supervisor**: Controls all services
-- **MongoDB**: DEPRECATED (kept running for compatibility, not used)
+### Service Configuration
+- Backend runs internally on 0.0.0.0:8001 via supervisor
+- This internal port is correctly mapped to REACT_APP_BACKEND_URL
+- Frontend accesses backend ONLY via REACT_APP_BACKEND_URL
+- Backend accesses database ONLY via Supabase connection
 
 ## API Endpoints
 All backend routes are prefixed with `/api/` for proper Kubernetes ingress routing.
